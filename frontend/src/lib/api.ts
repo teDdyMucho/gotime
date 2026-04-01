@@ -6,7 +6,6 @@ import * as mock from './mockApi'
 // Mock mode: active in dev when "Continue with local UI" was clicked
 // ----------------------------------------------------------------
 const isMockMode =
-  import.meta.env.DEV &&
   typeof window !== 'undefined' &&
   localStorage.getItem('gotime-dev-bypass-auth') === '1'
 
