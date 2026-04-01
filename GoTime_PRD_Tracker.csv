@@ -1,0 +1,69 @@
+Phase,#,Feature,PRD Section,Current Status,What Needs To Be Done,Date Completed
+PHASE 0 — Discovery & Setup (Week 1),1,Repo init & folder structure,§10 Timeline,✅ Completed Done,Done — frontend/ + supabase/ folders scaffolded,April 2 2026
+PHASE 0 — Discovery & Setup (Week 1),2,Frontend stack (React + Vite + Tailwind + shadcn),§7.1 Architecture,✅ Completed Done,Done — vite.config postcss tailwind shadcn all working,April 2 2026
+PHASE 0 — Discovery & Setup (Week 1),3,PostCSS config + Tailwind styling fix,§7.1 Architecture,✅ Completed Done,Done — postcss.config.js created tailwind.config CSS vars added,April 2 2026
+PHASE 0 — Discovery & Setup (Week 1),4,Mock auth + dev bypass login,§6.3 RBAC,✅ Completed Done,Done — Login.tsx bypass button sets localStorage key switches mock mode,April 2 2026
+PHASE 0 — Discovery & Setup (Week 1),5,Supabase SQL migrations (001-009),§8 Data Models,✅ Completed Done,Done — all 7 tables + metrics views + user roles helper,April 2 2026
+PHASE 0 — Discovery & Setup (Week 1),6,Mock in-memory store (mockStore.ts),§8 Data Models,✅ Completed Done,Done — Store class seed data 8 trips 8 clients 5 facilities 5 requestors,April 2 2026
+PHASE 0 — Discovery & Setup (Week 1),7,Mock API layer (mockApi.ts) matching real api.ts interface,§9.1 REST Endpoints,✅ Completed Done,Done — all endpoints match real API shape zero code changes needed on connect,April 2 2026
+PHASE 0 — Discovery & Setup (Week 1),8,Seed data (pay sources / facilities / requestors / clients / trips),§8 Data Models,✅ Completed Done,Done — 7 pay sources 5 facilities 5 requestors 8 clients 8 trips mixed states,April 2 2026
+PHASE 0 — Discovery & Setup (Week 1),9,Supabase project creation (real — production),§7.2 Supabase,❌ Missing,Create real Supabase project configure env vars VITE_SUPABASE_URL + ANON_KEY,
+PHASE 0 — Discovery & Setup (Week 1),10,n8n instance setup (self-hosted or n8n Cloud),§7.2 n8n,❌ Missing,Spin up n8n instance configure workspace connect to Supabase,
+PHASE 0 — Discovery & Setup (Week 1),11,Netlify project setup + staging domain,§7.2 Netlify,❌ Missing,Create Netlify project connect repo set env vars configure staging URL,
+PHASE 0 — Discovery & Setup (Week 1),12,BAA pursuit started for all 5 vendors,§6.5 BAA Checklist,❌ Missing,Initiate BAA with Supabase Twilio SendGrid n8n Netlify — CRITICAL before any PHI,
+PHASE 1 — Core Backend (Weeks 2–3),1,Supabase schema deployed (all 7 tables),§8 Data Models,⚠️ Partial,SQL migrations written — need to run against real Supabase project,
+PHASE 1 — Core Backend (Weeks 2–3),2,Row Level Security (RLS) policies on all PHI tables,§6.3 RBAC,❌ Missing,Write + deploy RLS policies for trips clients facilities requestors per role,
+PHASE 1 — Core Backend (Weeks 2–3),3,Supabase Auth with 3 roles (intake_staff / senior_dispatcher / admin),§6.3 RBAC,❌ Missing,Enable Supabase Auth set up user_roles table configure JWT role claims,
+PHASE 1 — Core Backend (Weeks 2–3),4,Python FastAPI skeleton + Docker setup,§7.2 FastAPI,❌ Missing,Init FastAPI project Dockerfile env config deploy to Railway or Render,
+PHASE 1 — Core Backend (Weeks 2–3),5,CRUD endpoints — facilities / requestors / clients / pay_sources,§9.1 REST Endpoints,❌ Missing,Implement GET POST PATCH for all 4 entity types with validation,
+PHASE 1 — Core Backend (Weeks 2–3),6,Trip intake POST + GET (list + single),§9.1 REST Endpoints,❌ Missing,POST /api/trips GET /api/trips GET /api/trips/{id} with filters,
+PHASE 1 — Core Backend (Weeks 2–3),7,Audit log table + write-on-every-mutation middleware,§FR-09 Audit Log,❌ Missing,FastAPI middleware writes to audit_log on every create/update/state change,
+PHASE 2 — Dispatcher Workflow (Week 4),1,PATCH /api/trips/{id}/review (accept / decline / return),§9.1 REST Endpoints,❌ Missing,Implement review endpoint state machine reason code validation,
+PHASE 2 — Dispatcher Workflow (Week 4),2,PATCH /api/trips/{id}/cancel (cancel + arrived-cancel),§9.1 REST Endpoints,❌ Missing,Cancel endpoint with cancellation_reason validation outcome_category set,
+PHASE 2 — Dispatcher Workflow (Week 4),3,Reason code validation (decline + return-for-info required),§FR-06 Reason Codes,✅ Completed Done,Done — UI enforces reason code selection before saving decision,April 2 2026
+PHASE 2 — Dispatcher Workflow (Week 4),4,n8n webhook triggers (trip_accepted / declined / returned / canceled),§9.2 n8n Triggers,❌ Missing,FastAPI calls n8n webhook after each decision transition,
+PHASE 2 — Dispatcher Workflow (Week 4),5,Twilio SMS workflow in n8n (accepted / declined / returned),§9.3 Twilio,❌ Missing,Build n8n workflow per decision type select template call Twilio API log result,
+PHASE 2 — Dispatcher Workflow (Week 4),6,SendGrid email workflow in n8n,§9.4 SendGrid,❌ Missing,Build n8n workflow per decision type use dynamic transactional templates log result,
+PHASE 2 — Dispatcher Workflow (Week 4),7,Notification log — backend writes delivery results,§FR-07 Notifications,⚠️ Partial,Mock log UI done — needs real Twilio/SendGrid delivery webhook → notification_log,
+PHASE 3 — Frontend / Netlify (Weeks 5–6),1,Login page + dev bypass button,§6.3 RBAC,✅ Completed Done,Done — Supabase Auth login + mock bypass,April 2 2026
+PHASE 3 — Frontend / Netlify (Weeks 5–6),2,App layout (sidebar + topbar + outlet),§7.2 Netlify,✅ Completed Done,Done — AppLayout Sidebar TopBar with role-filtered nav,April 2 2026
+PHASE 3 — Frontend / Netlify (Weeks 5–6),3,RBAC route guards (RequireAuth + role check),§6.3 RBAC,✅ Completed Done,Done — RequireAuth in App.tsx enforces role per route,April 2 2026
+PHASE 3 — Frontend / Netlify (Weeks 5–6),4,Intake form — all 5 sections with linked dropdowns,§FR-04 Intake Form,✅ Completed Done,Done — intake client trip billing quality sections all linked to entity dropdowns,April 2 2026
+PHASE 3 — Frontend / Netlify (Weeks 5–6),5,Quick-add Client modal during intake,§FR-03 Client Dir.,✅ Completed Done,Done — + button opens mini dialog creates client auto-selects in form,April 2 2026
+PHASE 3 — Frontend / Netlify (Weeks 5–6),6,Quick-add Requestor modal during intake,§FR-02 Requestor Dir.,✅ Completed Done,Done — + button opens mini dialog links to selected facility auto-selects,April 2 2026
+PHASE 3 — Frontend / Netlify (Weeks 5–6),7,Intake form — auto-fill pay source from facility default,§FR-04 Intake Form,✅ Completed Done,Done — useEffect watches facility_id auto-fills pay_source_id on change,April 2 2026
+PHASE 3 — Frontend / Netlify (Weeks 5–6),8,Dispatcher queue — filterable sortable trip list,§FR-05 Review Queue,✅ Completed Done,Done — state / facility / pay source / missing info filters + sort by date/urgency/intake,April 2 2026
+PHASE 3 — Frontend / Netlify (Weeks 5–6),9,Dispatcher queue — pending count badge,§FR-05 Review Queue,✅ Completed Done,Done — amber badge shows pending count in queue header,April 2 2026
+PHASE 3 — Frontend / Netlify (Weeks 5–6),10,Trip detail — full client / requestor / facility cards,§FR-04 Intake Form,✅ Completed Done,Done — 3-column entity cards all contact info review result bar internal warning,April 2 2026
+PHASE 3 — Frontend / Netlify (Weeks 5–6),11,Trip detail — Accept / Decline / Return actions with reason codes,§FR-06 Reason Codes,✅ Completed Done,Done — action buttons per role dialogs with required reason code dropdowns,April 2 2026
+PHASE 3 — Frontend / Netlify (Weeks 5–6),12,Trip detail — Cancel Trip action (cancel + arrived-cancel),§FR-06 Reason Codes,✅ Completed Done,Done — Cancel dialog with cancellation_reason dropdown handles arrived_canceled,April 2 2026
+PHASE 3 — Frontend / Netlify (Weeks 5–6),13,Trip detail — Send Notification dialog (manual trigger),§FR-07 Notifications,✅ Completed Done,Done — type selector SMS preview requestor contact info shown,April 2 2026
+PHASE 3 — Frontend / Netlify (Weeks 5–6),14,Facility directory — list / create / edit,§FR-01 Facility Dir.,✅ Completed Done,Done — Facilities.tsx full CRUD admin-only edit active/inactive badge,April 2 2026
+PHASE 3 — Frontend / Netlify (Weeks 5–6),15,Requestor directory — list / filter by facility / create / edit,§FR-02 Requestor Dir.,✅ Completed Done,Done — Requestors.tsx facility filter CRUD role-gated edit,April 2 2026
+PHASE 3 — Frontend / Netlify (Weeks 5–6),16,Client directory — list / search / create / edit,§FR-03 Client Dir.,✅ Completed Done,Done — Clients.tsx name+phone search CRUD all fields,April 2 2026
+PHASE 3 — Frontend / Netlify (Weeks 5–6),17,Notification log view (type / method / status / preview),§FR-07 Notifications,✅ Completed Done,Done — NotificationLog.tsx table filters clickable trip link,April 2 2026
+PHASE 3 — Frontend / Netlify (Weeks 5–6),18,Audit log view (admin only),§FR-09 Audit Log,✅ Completed Done,Done — AuditLog.tsx table admin-only route entity filter,April 2 2026
+PHASE 4 — Reporting Dashboard (Week 7),1,Volume + outcome stat cards (total / accepted / declined etc.),§FR-08 Dashboard,✅ Completed Done,Done — 8 stat cards with color coding,April 2 2026
+PHASE 4 — Reporting Dashboard (Week 7),2,Revenue metrics cards (expected / completed / declined opp),§FR-08 Dashboard,✅ Completed Done,Done — 3 revenue cards with currency formatting,April 2 2026
+PHASE 4 — Reporting Dashboard (Week 7),3,Trips by State pie chart,§FR-08 Dashboard,✅ Completed Done,Done — recharts PieChart with state color coding,April 2 2026
+PHASE 4 — Reporting Dashboard (Week 7),4,Trips by Facility horizontal bar chart,§FR-08 Dashboard,✅ Completed Done,Done — recharts BarChart accepted vs declined per facility,April 2 2026
+PHASE 4 — Reporting Dashboard (Week 7),5,Trips by Pay Source bar chart,§FR-08 Dashboard,✅ Completed Done,Done — recharts BarChart accepted vs declined per pay source,April 2 2026
+PHASE 4 — Reporting Dashboard (Week 7),6,Quality metrics — missing info rate + return rate stat cards,§FR-08 Dashboard,✅ Completed Done,Done — color-coded thresholds green/amber/red,April 2 2026
+PHASE 4 — Reporting Dashboard (Week 7),7,Top Decline Reasons bar chart,§FR-08 Dashboard,✅ Completed Done,Done — getMetricsQuality() powers recharts BarChart,April 2 2026
+PHASE 4 — Reporting Dashboard (Week 7),8,Date range filter on dashboard,§FR-08 Dashboard,❌ Missing,Add from/to date pickers pass to metrics API filter trips by intake_date range,
+PHASE 4 — Reporting Dashboard (Week 7),9,Facility filter on dashboard,§FR-08 Dashboard,❌ Missing,Add facility Select pass facility_id param to all metrics queries,
+PHASE 4 — Reporting Dashboard (Week 7),10,CSV export for trip records,§FR-08 Dashboard,❌ Missing,Add Export CSV button on queue page converts filtered trips to downloadable CSV,
+PHASE 5 — HIPAA Hardening (Week 8),1,Column-level PHI encryption (pgcrypto / Supabase Vault),§6.2 Encryption,❌ Missing,Encrypt DOB phone primary_address pickup_address dropoff_address in Postgres,
+PHASE 5 — HIPAA Hardening (Week 8),2,MFA enforcement for Admin role,§6.3 RBAC,❌ Missing,Enforce TOTP MFA in Supabase Auth for admin accounts,
+PHASE 5 — HIPAA Hardening (Week 8),3,Session timeout ≤ 30 min inactivity,§6.3 RBAC,❌ Missing,Configure Supabase session timeout add idle detection in frontend,
+PHASE 5 — HIPAA Hardening (Week 8),4,RLS policy audit (all PHI tables),§6.3 RBAC,❌ Missing,Audit every table verify intake_staff / dispatcher / admin boundaries are enforced,
+PHASE 5 — HIPAA Hardening (Week 8),5,SMS template PHI review,§9.3 Twilio,❌ Missing,Verify no PHI in SMS bodies — use trip ID reference language only,
+PHASE 5 — HIPAA Hardening (Week 8),6,Audit log retention policy (6 years),§6.4 Audit Logging,❌ Missing,Configure Supabase retention or backup policy for audit_log table,
+PHASE 5 — HIPAA Hardening (Week 8),7,BAA confirmed for all 5 vendors before PHI entry,§6.5 BAA Checklist,❌ Missing,Supabase + Twilio + SendGrid + n8n + Netlify BAAs all executed and on file,
+PHASE 6 — QA & Launch (Week 9),1,End-to-end test (intake → review → notification → reporting),§10 Timeline,❌ Missing,Full flow test with real backend all states verified,
+PHASE 6 — QA & Launch (Week 9),2,Load testing,§10 Timeline,❌ Missing,Simulate concurrent intake + review sessions verify DB performance,
+PHASE 6 — QA & Launch (Week 9),3,User acceptance testing with intake staff,§10 Timeline,❌ Missing,UAT sessions with real intake staff validate form speed quick-add flow,
+PHASE 6 — QA & Launch (Week 9),4,User acceptance testing with dispatcher,§10 Timeline,❌ Missing,UAT sessions with senior dispatcher validate queue review notification flow,
+PHASE 6 — QA & Launch (Week 9),5,Staging sign-off,§10 Timeline,❌ Missing,Stakeholder sign-off on staging environment before production deploy,
+PHASE 6 — QA & Launch (Week 9),6,Production deploy (Netlify + API + Supabase),§10 Timeline,❌ Missing,Deploy all three tiers to production configure custom domain SSL,
+PHASE 6 — QA & Launch (Week 9),7,Staff onboarding + training,§10 Timeline,❌ Missing,Train intake staff and dispatchers on tool usage create quick-reference guide,

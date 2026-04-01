@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GoTime Pre-CQ Tool — Complete Build Plan</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 13px;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 40px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    /* Cover */
+    .cover {
+      text-align: center;
+      padding: 80px 0 60px;
+      border-bottom: 3px solid #1a7a3c;
+      margin-bottom: 40px;
+    }
+    .cover .logo-text {
+      font-size: 32px;
+      font-weight: 900;
+      color: #1a7a3c;
+      letter-spacing: 1px;
+    }
+    .cover .subtitle {
+      font-size: 17px;
+      color: #333;
+      margin-top: 8px;
+      font-weight: 600;
+    }
+    .cover .doc-type {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #555;
+    }
+    .cover .hipaa-badge {
+      display: inline-block;
+      margin-top: 16px;
+      background: #c0392b;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 14px;
+      border-radius: 4px;
+      letter-spacing: 1px;
+    }
+    /* Headings */
+    h1 {
+      font-size: 20px;
+      color: #1a7a3c;
+      border-bottom: 2px solid #1a7a3c;
+      padding-bottom: 6px;
+      margin: 36px 0 14px;
+    }
+    h2 {
+      font-size: 15px;
+      color: #1a5c2e;
+      margin: 22px 0 8px;
+    }
+    h3 {
+      font-size: 13px;
+      color: #2c2c2c;
+      margin: 14px 0 6px;
+      font-weight: 700;
+    }
+    p { margin-bottom: 8px; line-height: 1.6; }
+    ul { margin: 6px 0 10px 20px; }
+    ul li { margin-bottom: 4px; line-height: 1.5; }
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 20px;
+      font-size: 12px;
+    }
+    th {
+      background: #1a7a3c;
+      color: #fff;
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 700;
+    }
+    td {
+      padding: 7px 10px;
+      border-bottom: 1px solid #ddd;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: #f4faf6; }
+    /* Code blocks */
+    pre {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 16px;
+      border-radius: 6px;
+      font-family: 'Cascadia Code', 'Consolas', monospace;
+      font-size: 11px;
+      overflow-x: auto;
+      margin: 10px 0 16px;
+      line-height: 1.6;
+    }
+    code {
+      background: #f0f0f0;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-family: monospace;
+    }
+    /* Badges */
+    .badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .badge-critical { background: #c0392b; color: #fff; }
+    .badge-high { background: #e67e22; color: #fff; }
+    .badge-medium { background: #f1c40f; color: #333; }
+    .badge-green { background: #1a7a3c; color: #fff; }
+    /* Phase header */
+    .phase-header {
+      background: #1a7a3c;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 6px;
+      margin: 28px 0 14px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .phase-header span {
+      font-size: 11px;
+      font-weight: 400;
+      opacity: 0.85;
+      margin-left: 10px;
+    }
+    /* Warning box */
+    .warning-box {
+      background: #fff3cd;
+      border-left: 4px solid #e67e22;
+      padding: 12px 16px;
+      margin: 12px 0;
+      border-radius: 0 6px 6px 0;
+      font-size: 12px;
+    }
+    .warning-box strong { color: #c0392b; }
+    /* Info box */
+    .info-box {
+      background: #e8f5e9;
+      border-left: 4px solid #1a7a3c;
+      padding: 12px 16px;
+      margin: 12px 0;
+      border-radius: 0 6px 6px 0;
+      font-size: 12px;
+    }
+    /* Checklist */
+    .checklist li {
+      list-style: none;
+      margin-left: -20px;
+      padding-left: 24px;
+      position: relative;
+    }
+    .checklist li::before {
+      content: "☐";
+      position: absolute;
+      left: 0;
+      color: #1a7a3c;
+      font-size: 14px;
+    }
+    /* Section divider */
+    hr {
+      border: none;
+      border-top: 1px solid #e0e0e0;
+      margin: 24px 0;
+    }
+    /* Page break for print */
+    .page-break { page-break-before: always; }
+    /* Print styles */
+    @media print {
+      body { padding: 20px; font-size: 11px; }
+      .cover { padding: 40px 0 30px; }
+      pre { font-size: 9px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- COVER PAGE -->
+<div class="cover">
+  <div class="logo-text">GO TIME TRANSPORTATION</div>
+  <div class="subtitle">Pre-CQ Trip Intake, Review, Notification &amp; Metrics Tool</div>
+  <div class="doc-type">
+    <strong>Complete Build Plan — All Phases</strong><br/>
+    React TypeScript + Python FastAPI + Supabase + n8n<br/>
+    April 2026
+  </div>
+  <div class="hipaa-badge">HIPAA-COMPLIANT INTERNAL OPERATIONS PLATFORM</div>
+</div>
+
+<!-- TECH STACK -->
+<h1>Final Tech Stack</h1>
+<table>
+  <tr><th>Layer</th><th>Technology</th></tr>
+  <tr><td>Frontend</td><td>React + TypeScript (TSX), Vite, Netlify</td></tr>
+  <tr><td>UI Library</td><td>shadcn/ui + Tailwind CSS</td></tr>
+  <tr><td>Backend</td><td>Python 3.11 + FastAPI</td></tr>
+  <tr><td>Database</td><td>Supabase (PostgreSQL)</td></tr>
+  <tr><td>Auth</td><td>Supabase Auth (JWT + RBAC)</td></tr>
+  <tr><td>Workflow Automation</td><td>n8n</td></tr>
+  <tr><td>SMS</td><td>Twilio</td></tr>
+  <tr><td>Email</td><td>SendGrid</td></tr>
+  <tr><td>API Hosting</td><td>Railway or Render (Docker)</td></tr>
+</table>
+
+<h1>RBAC Roles</h1>
+<table>
+  <tr><th>Role</th><th>Access</th><th>PHI Access</th><th>Dashboard</th></tr>
+  <tr><td>Intake Staff</td><td>Create/edit intake, directory search</td><td>Read during intake</td><td>None</td></tr>
+  <tr><td>Senior Dispatcher</td><td>Review queue, decisions, notifications, edit trips</td><td>Read all PHI on trips</td><td>Read-only</td></tr>
+  <tr><td>Admin / Ops</td><td>Full access to all records + settings</td><td>Full + audit log</td><td>Full + exports</td></tr>
+</table>
+
+<!-- PHASE 0 -->
+<div class="page-break"></div>
+<div class="phase-header">PHASE 0 — Discovery &amp; Setup <span>Week 1</span></div>
+
+<h2>Goal</h2>
+<p>All infrastructure set up before writing any business logic. No PHI in system yet.</p>
+
+<div class="warning-box">
+  <strong>CRITICAL:</strong> Use synthetic/mock data only. All 5 BAAs must be signed before any real PHI enters the system.
+</div>
+
+<h2>Accounts to Create</h2>
+<table>
+  <tr><th>Service</th><th>Action</th><th>Keys Needed</th></tr>
+  <tr><td>Supabase</td><td>Create new project (HIPAA plan)</td><td>SUPABASE_URL, ANON_KEY, SERVICE_ROLE_KEY</td></tr>
+  <tr><td>Netlify</td><td>Create project, connect to repo</td><td>—</td></tr>
+  <tr><td>Railway / Render</td><td>Create account for FastAPI container</td><td>—</td></tr>
+  <tr><td>Twilio</td><td>Trial account, SMS sandbox</td><td>TWILIO_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE</td></tr>
+  <tr><td>SendGrid</td><td>Free account, verify sender domain</td><td>SENDGRID_API_KEY</td></tr>
+  <tr><td>n8n</td><td>n8n Cloud trial or Docker self-host</td><td>N8N_WEBHOOK_URL</td></tr>
+</table>
+
+<h2>BAA Checklist — Start Week 1</h2>
+<table>
+  <tr><th>Vendor</th><th>BAA Required</th><th>Status</th></tr>
+  <tr><td>Supabase</td><td>YES — PHI stored here</td><td><span class="badge badge-critical">MUST SIGN BEFORE LAUNCH</span></td></tr>
+  <tr><td>Twilio</td><td>YES — PHI in trip context</td><td><span class="badge badge-critical">MUST SIGN BEFORE LAUNCH</span></td></tr>
+  <tr><td>SendGrid</td><td>YES — PHI in email</td><td><span class="badge badge-critical">MUST SIGN BEFORE LAUNCH</span></td></tr>
+  <tr><td>n8n</td><td>YES — processes PHI</td><td><span class="badge badge-critical">MUST SIGN BEFORE LAUNCH</span></td></tr>
+  <tr><td>Netlify</td><td>YES — serves PHI app</td><td><span class="badge badge-critical">MUST SIGN BEFORE LAUNCH</span></td></tr>
+</table>
+
+<h2>Project Folder Structure</h2>
+<pre>
+gotime/
+├── backend/
+│   ├── app/
+│   │   ├── main.py
+│   │   ├── core/
+│   │   │   ├── config.py
+│   │   │   └── security.py
+│   │   ├── routers/
+│   │   │   ├── trips.py
+│   │   │   ├── facilities.py
+│   │   │   ├── requestors.py
+│   │   │   ├── clients.py
+│   │   │   ├── pay_sources.py
+│   │   │   ├── metrics.py
+│   │   │   ├── notifications.py
+│   │   │   └── audit.py
+│   │   ├── models/
+│   │   │   ├── trip.py
+│   │   │   ├── facility.py
+│   │   │   ├── requestor.py
+│   │   │   ├── client.py
+│   │   │   └── common.py
+│   │   ├── services/
+│   │   │   ├── supabase_client.py
+│   │   │   ├── notification_service.py
+│   │   │   └── audit_service.py
+│   │   └── db/
+│   │       └── supabase.py
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   └── .env.example
+├── frontend/
+│   ├── src/
+│   │   ├── pages/
+│   │   │   ├── IntakeForm.tsx
+│   │   │   ├── DispatcherQueue.tsx
+│   │   │   ├── Dashboard.tsx
+│   │   │   ├── Facilities.tsx
+│   │   │   ├── Requestors.tsx
+│   │   │   ├── Clients.tsx
+│   │   │   ├── NotificationLog.tsx
+│   │   │   ├── AuditLog.tsx
+│   │   │   └── Login.tsx
+│   │   ├── components/
+│   │   │   ├── layout/
+│   │   │   │   ├── Sidebar.tsx
+│   │   │   │   └── TopBar.tsx
+│   │   │   ├── intake/
+│   │   │   │   ├── IntakeSection.tsx
+│   │   │   │   ├── ClientSection.tsx
+│   │   │   │   ├── TripSection.tsx
+│   │   │   │   ├── FinancialSection.tsx
+│   │   │   │   └── QualitySection.tsx
+│   │   │   ├── queue/
+│   │   │   │   ├── TripRow.tsx
+│   │   │   │   ├── ReviewPanel.tsx
+│   │   │   │   └── DecisionModal.tsx
+│   │   │   ├── modals/
+│   │   │   │   ├── QuickAddRequestor.tsx
+│   │   │   │   └── QuickAddClient.tsx
+│   │   │   └── dashboard/
+│   │   │       ├── MetricCard.tsx
+│   │   │       ├── FacilityTable.tsx
+│   │   │       └── RevenueChart.tsx
+│   │   ├── lib/
+│   │   │   ├── api.ts
+│   │   │   ├── auth.ts
+│   │   │   └── types.ts
+│   │   ├── hooks/
+│   │   │   ├── useAuth.ts
+│   │   │   └── useTrips.ts
+│   │   ├── App.tsx
+│   │   └── main.tsx
+│   ├── vite.config.ts
+│   ├── tailwind.config.ts
+│   ├── tsconfig.json
+│   └── package.json
+├── supabase/
+│   ├── migrations/
+│   │   ├── 001_create_pay_sources.sql
+│   │   ├── 002_create_facilities.sql
+│   │   ├── 003_create_requestors.sql
+│   │   ├── 004_create_clients.sql
+│   │   ├── 005_create_trip_requests.sql
+│   │   ├── 006_create_notification_log.sql
+│   │   ├── 007_create_audit_log.sql
+│   │   ├── 008_rls_policies.sql
+│   │   └── 009_audit_triggers.sql
+│   └── seed.sql
+└── .env.example
+</pre>
+
+<h2>Phase 0 Deliverables Checklist</h2>
+<ul class="checklist">
+  <li>Git repo initialized</li>
+  <li>Supabase project created (HIPAA plan)</li>
+  <li>Netlify project created and connected to repo</li>
+  <li>Railway or Render account setup</li>
+  <li>n8n instance running (Cloud or Docker)</li>
+  <li>Twilio trial account created</li>
+  <li>SendGrid account created, sender domain verified</li>
+  <li>.env.example documented — no real secrets in repo</li>
+  <li>BAA pursuit initiated with all 5 vendors</li>
+  <li>Staging domain configured on Netlify</li>
+  <li>Project folder structure created</li>
+</ul>
+
+<!-- PHASE 1 -->
+<div class="page-break"></div>
+<div class="phase-header">PHASE 1 — Core Backend <span>Weeks 2–3</span></div>
+
+<h2>Deliverables</h2>
+<ul>
+  <li>All 7 Supabase tables created with correct schema and FKs</li>
+  <li>RLS enabled on all PHI tables</li>
+  <li>Supabase Auth configured (3 roles: intake_staff, senior_dispatcher, admin)</li>
+  <li>FastAPI skeleton running locally + deployed to Railway/Render</li>
+  <li>CRUD endpoints for: facilities, requestors, clients, pay_sources</li>
+  <li>POST /api/trips, GET /api/trips, GET /api/trips/{id}</li>
+  <li>Audit log trigger active on all tables</li>
+</ul>
+
+<h2>Tables Creation Order (FK Dependencies)</h2>
+<table>
+  <tr><th>Order</th><th>Table</th><th>FK Dependencies</th></tr>
+  <tr><td>1</td><td>pay_sources</td><td>None</td></tr>
+  <tr><td>2</td><td>facilities</td><td>pay_sources</td></tr>
+  <tr><td>3</td><td>requestors</td><td>facilities</td></tr>
+  <tr><td>4</td><td>clients</td><td>pay_sources, facilities</td></tr>
+  <tr><td>5</td><td>trip_requests</td><td>requestors, facilities, clients, pay_sources</td></tr>
+  <tr><td>6</td><td>notification_log</td><td>trip_requests, requestors</td></tr>
+  <tr><td>7</td><td>audit_log</td><td>Append-only — no FK to PHI tables</td></tr>
+</table>
+
+<h2>PHI Fields — Encrypted at Column Level</h2>
+<table>
+  <tr><th>Table</th><th>Field</th><th>PHI Type</th></tr>
+  <tr><td>clients</td><td>full_name</td><td>Patient name</td></tr>
+  <tr><td>clients</td><td>date_of_birth</td><td>DOB</td></tr>
+  <tr><td>clients</td><td>phone</td><td>Contact info</td></tr>
+  <tr><td>clients</td><td>primary_address</td><td>Address</td></tr>
+  <tr><td>clients</td><td>special_assistance_notes</td><td>Medical notes</td></tr>
+  <tr><td>trip_requests</td><td>pickup_address</td><td>Location</td></tr>
+  <tr><td>trip_requests</td><td>dropoff_address</td><td>Location</td></tr>
+  <tr><td>trip_requests</td><td>appointment_type</td><td>Reason for trip</td></tr>
+</table>
+
+<h2>Phase 1 FastAPI Endpoints</h2>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>GET / POST</td><td>/api/facilities</td><td>List / create facilities</td></tr>
+  <tr><td>PATCH</td><td>/api/facilities/{id}</td><td>Update facility</td></tr>
+  <tr><td>GET / POST</td><td>/api/requestors</td><td>List / create requestors</td></tr>
+  <tr><td>GET / POST</td><td>/api/clients</td><td>List / create clients</td></tr>
+  <tr><td>GET / POST</td><td>/api/pay-sources</td><td>List / create pay sources</td></tr>
+  <tr><td>POST</td><td>/api/trips</td><td>Create new trip intake</td></tr>
+  <tr><td>GET</td><td>/api/trips</td><td>List trips (filterable, paginated)</td></tr>
+  <tr><td>GET</td><td>/api/trips/{id}</td><td>Get single trip full detail</td></tr>
+</table>
+
+<h2>Python Packages (requirements.txt)</h2>
+<pre>
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+supabase==2.4.2
+python-dotenv==1.0.1
+pydantic==2.7.1
+pydantic-settings==2.2.1
+python-jose[cryptography]==3.3.0
+httpx==0.27.0
+</pre>
+
+<!-- PHASE 2 -->
+<div class="page-break"></div>
+<div class="phase-header">PHASE 2 — Dispatcher Workflow <span>Week 4</span></div>
+
+<h2>Deliverables</h2>
+<ul>
+  <li>PATCH /api/trips/{id}/review — accept / decline / return</li>
+  <li>PATCH /api/trips/{id}/cancel — cancellation with reason code</li>
+  <li>POST /api/trips/{id}/notify — manual notification trigger</li>
+  <li>Reason code validation enforced server-side (required on decline/return)</li>
+  <li>n8n webhook integration</li>
+  <li>Twilio SMS workflows: accepted / declined / returned / canceled</li>
+  <li>SendGrid email workflows: all notification types</li>
+</ul>
+
+<h2>Additional Endpoints Phase 2</h2>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>PATCH</td><td>/api/trips/{id}/review</td><td>Dispatcher decision + reason code</td></tr>
+  <tr><td>PATCH</td><td>/api/trips/{id}/cancel</td><td>Cancel with cancellation reason</td></tr>
+  <tr><td>POST</td><td>/api/trips/{id}/notify</td><td>Manual notification trigger</td></tr>
+  <tr><td>POST</td><td>/api/webhooks/twilio-status</td><td>Twilio delivery callback</td></tr>
+  <tr><td>POST</td><td>/api/webhooks/sendgrid-events</td><td>SendGrid delivery callback</td></tr>
+</table>
+
+<h2>Decline Reason Codes (enum)</h2>
+<pre>
+outside_service_area | no_availability | insufficient_notice |
+missing_authorization | unsupported_mobility | pay_source_issue |
+duplicate_request | request_incomplete | requestor_unreachable |
+not_operationally_feasible | other
+</pre>
+
+<h2>Cancellation Reason Codes (enum)</h2>
+<pre>
+facility_canceled | requestor_canceled | client_canceled |
+no_show | appointment_changed | authorization_issue |
+duplicate_booking | operational_issue | arrived_cancel |
+inclement_weather | other
+</pre>
+
+<h2>n8n Webhook Triggers</h2>
+<table>
+  <tr><th>Webhook</th><th>Trigger</th><th>Action</th></tr>
+  <tr><td>POST /n8n/trip-decision</td><td>Dispatcher saves decision</td><td>Select template → Twilio/SendGrid → log</td></tr>
+  <tr><td>POST /n8n/trip-canceled</td><td>Trip marked canceled</td><td>Cancellation notice to requestor</td></tr>
+  <tr><td>POST /n8n/manual-alert</td><td>Dispatcher ad-hoc</td><td>Custom notification to recipient list</td></tr>
+</table>
+
+<div class="info-box">
+  <strong>SMS PHI Rule:</strong> SMS body must NOT include full PHI. Use reference language only: <em>"Your trip request (ID: XXXX) has been accepted."</em>
+</div>
+
+<!-- PHASE 3 -->
+<div class="page-break"></div>
+<div class="phase-header">PHASE 3 — Frontend React TSX <span>Weeks 5–6</span></div>
+
+<h2>Deliverables</h2>
+<ul>
+  <li>Login page with Supabase Auth</li>
+  <li>Role-based routing (intake_staff / senior_dispatcher / admin)</li>
+  <li>Intake Form — 5 sections with linked dropdowns</li>
+  <li>Quick-add modals: Requestor + Client (no page navigation)</li>
+  <li>Dispatcher Queue — sortable/filterable table</li>
+  <li>Review action panel — Accept / Decline / Return with reason code dropdown</li>
+  <li>Facility / Requestor / Client directory screens</li>
+  <li>Notification log view</li>
+</ul>
+
+<h2>Pages and Role Access</h2>
+<table>
+  <tr><th>Page / Route</th><th>Intake Staff</th><th>Dispatcher</th><th>Admin</th></tr>
+  <tr><td>/login</td><td>✓</td><td>✓</td><td>✓</td></tr>
+  <tr><td>/intake — New Trip Form</td><td>✓</td><td>✓</td><td>✓</td></tr>
+  <tr><td>/queue — Dispatcher Queue</td><td>—</td><td>✓</td><td>✓</td></tr>
+  <tr><td>/facilities</td><td>—</td><td>—</td><td>✓</td></tr>
+  <tr><td>/requestors</td><td>—</td><td>✓</td><td>✓</td></tr>
+  <tr><td>/clients</td><td>✓</td><td>✓</td><td>✓</td></tr>
+  <tr><td>/notifications</td><td>—</td><td>✓</td><td>✓</td></tr>
+  <tr><td>/audit</td><td>—</td><td>—</td><td>✓</td></tr>
+  <tr><td>/dashboard</td><td>—</td><td>Read-only</td><td>Full + export</td></tr>
+</table>
+
+<h2>Frontend npm Packages</h2>
+<pre>
+react + typescript
+vite
+react-router-dom
+@tanstack/react-query
+react-hook-form + zod
+shadcn/ui
+tailwindcss
+@supabase/supabase-js
+axios
+recharts
+date-fns
+lucide-react
+</pre>
+
+<h2>Core TypeScript Types (lib/types.ts)</h2>
+<pre>
+type Role = 'intake_staff' | 'senior_dispatcher' | 'admin'
+type ReviewState = 'pending' | 'accepted' | 'declined' | 'returned' | 'canceled' | 'completed' | 'arrived_canceled'
+type TripType = 'one_way' | 'round_trip' | 'multi_trip'
+type UrgencyLevel = 'standard' | 'urgent' | 'emergency'
+type NotificationMethod = 'sms' | 'email' | 'both'
+type MobilityLevel = 'ambulatory' | 'wheelchair' | 'stretcher' | 'other'
+type IntakeChannel = 'phone' | 'email' | 'fax' | 'portal' | 'internal'
+type FacilityType = 'hospital' | 'clinic' | 'SNF' | 'home_health' | 'other'
+</pre>
+
+<!-- PHASE 4 -->
+<div class="page-break"></div>
+<div class="phase-header">PHASE 4 — Reporting Dashboard <span>Week 7</span></div>
+
+<h2>Deliverables</h2>
+<ul>
+  <li>Dashboard page — Admin (full) + Dispatcher (read-only)</li>
+  <li>Volume &amp; outcome metric cards</li>
+  <li>Facility performance table</li>
+  <li>Pay source performance table</li>
+  <li>Revenue opportunity metrics</li>
+  <li>Quality metrics: decline reasons, cancellation reasons, missing info rate, avg turnaround</li>
+  <li>Date range + facility + pay source filters</li>
+  <li>CSV export for all metric views</li>
+</ul>
+
+<h2>Dashboard Endpoints</h2>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Data</th></tr>
+  <tr><td>GET</td><td>/api/metrics/summary</td><td>Total, accepted, declined, completed, canceled counts</td></tr>
+  <tr><td>GET</td><td>/api/metrics/by-facility</td><td>All outcome metrics grouped by facility</td></tr>
+  <tr><td>GET</td><td>/api/metrics/by-pay-source</td><td>All outcome metrics grouped by pay source</td></tr>
+  <tr><td>GET</td><td>/api/metrics/revenue</td><td>Expected, accepted, completed, declined, canceled revenue</td></tr>
+  <tr><td>GET</td><td>/api/metrics/quality</td><td>Decline reasons, cancel reasons, avg turnaround, missing info rate</td></tr>
+  <tr><td>GET</td><td>/api/trips/export</td><td>CSV export with all fields</td></tr>
+</table>
+
+<!-- PHASE 5 -->
+<div class="page-break"></div>
+<div class="phase-header">PHASE 5 — HIPAA Hardening <span>Week 8</span></div>
+
+<h2>Deliverables</h2>
+<ul>
+  <li>Column-level encryption on all PHI fields (pgcrypto or Supabase Vault)</li>
+  <li>MFA required for Admin role in Supabase Auth</li>
+  <li>Session timeout ≤ 30 minutes for all roles</li>
+  <li>RLS policy audit — verify all role boundaries</li>
+  <li>SMS template review — confirm no full PHI in body</li>
+  <li>BAA confirmed signed for all 5 vendors</li>
+  <li>Audit log retention policy set (6 years minimum)</li>
+  <li>Audit log append-only enforcement verified</li>
+</ul>
+
+<div class="warning-box">
+  <strong>CRITICAL:</strong> All five BAAs must be fully executed before any real PHI enters the system. Until then, only synthetic/mock data is permitted in all environments.
+</div>
+
+<h2>PHI Encryption Fields</h2>
+<table>
+  <tr><th>Table</th><th>Column</th><th>Encryption Method</th></tr>
+  <tr><td>clients</td><td>full_name</td><td>pgcrypto / Supabase Vault</td></tr>
+  <tr><td>clients</td><td>date_of_birth</td><td>pgcrypto / Supabase Vault</td></tr>
+  <tr><td>clients</td><td>phone</td><td>pgcrypto / Supabase Vault</td></tr>
+  <tr><td>clients</td><td>primary_address</td><td>pgcrypto / Supabase Vault</td></tr>
+  <tr><td>trip_requests</td><td>pickup_address</td><td>pgcrypto / Supabase Vault</td></tr>
+  <tr><td>trip_requests</td><td>dropoff_address</td><td>pgcrypto / Supabase Vault</td></tr>
+  <tr><td>trip_requests</td><td>appointment_type</td><td>pgcrypto / Supabase Vault</td></tr>
+</table>
+
+<!-- PHASE 6 -->
+<div class="page-break"></div>
+<div class="phase-header">PHASE 6 — QA &amp; Launch <span>Week 9</span></div>
+
+<h2>Deliverables</h2>
+<ul>
+  <li>End-to-end test flow: intake → dispatcher review → notification → reporting</li>
+  <li>Role boundary tests (RLS verification automated)</li>
+  <li>Load testing on FastAPI + Supabase</li>
+  <li>User acceptance testing (UAT) with real intake staff + dispatcher</li>
+  <li>Staging environment sign-off</li>
+  <li>Production deploy: Netlify + Railway/Render + Supabase (prod project)</li>
+  <li>Staff onboarding + training</li>
+</ul>
+
+<h2>KPIs — Target at 60 Days Post-Launch</h2>
+<table>
+  <tr><th>KPI</th><th>Target</th><th>Measurement</th></tr>
+  <tr><td>System Uptime</td><td>≥ 99.5%</td><td>Netlify / Supabase monitoring</td></tr>
+  <tr><td>Intake Form Completion</td><td>≥ 90% required fields</td><td>Missing info flag rate in DB</td></tr>
+  <tr><td>Dispatcher Review Turnaround</td><td>≤ 2 hours avg</td><td>reviewed_at − submitted_at</td></tr>
+  <tr><td>Notification Delivery</td><td>≥ 98%</td><td>Twilio/SendGrid delivery logs</td></tr>
+  <tr><td>Staff Adoption</td><td>100% by Week 4</td><td>Trip records vs. manual logs</td></tr>
+  <tr><td>Dashboard Accuracy</td><td>Zero discrepancies</td><td>QA audit vs. raw DB</td></tr>
+  <tr><td>CQ Migration Readiness</td><td>All required fields present</td><td>Schema validation script</td></tr>
+</table>
+
+<!-- RISKS -->
+<div class="page-break"></div>
+<h1>Risks &amp; Mitigations</h1>
+<table>
+  <tr><th>#</th><th>Risk</th><th>Severity</th><th>Mitigation</th></tr>
+  <tr>
+    <td>1</td>
+    <td>BAA not executed before PHI enters system</td>
+    <td><span class="badge badge-critical">CRITICAL</span></td>
+    <td>Begin BAA pursuit Week 1. Block all PHI until confirmed. Synthetic data only in dev/test.</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Staff resistance to structured intake form</td>
+    <td><span class="badge badge-high">HIGH</span></td>
+    <td>Interview intake staff before build. Auto-populate linked fields. Quick-add modals. UAT with real staff.</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Supabase RLS misconfiguration exposes PHI</td>
+    <td><span class="badge badge-high">HIGH</span></td>
+    <td>RLS policy audit in Phase 5. Automated role boundary tests. HIPAA-focused review.</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>n8n instance outage blocks notifications</td>
+    <td><span class="badge badge-medium">MEDIUM</span></td>
+    <td>Use n8n Cloud SLA or deploy with redundancy. Retry logic on all webhooks. Python API fallback direct to Twilio/SendGrid.</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>Data quality issues delay CQ migration</td>
+    <td><span class="badge badge-medium">MEDIUM</span></td>
+    <td>Enforce structured dropdowns from day one. Monthly data quality reviews. Stable UUIDs on all records.</td>
+  </tr>
+</table>
+
+<h1>Open Questions for Stakeholder</h1>
+<ul>
+  <li>BAA status — have any been initiated with the 5 vendors?</li>
+  <li>n8n hosting — Cloud or self-hosted Docker?</li>
+  <li>FastAPI hosting — Railway, Render, or AWS ECS?</li>
+  <li>Notification template approval — who owns the SMS/email copy?</li>
+  <li>Active pay sources list — needed to seed pay_sources table at launch</li>
+  <li>Existing facility list — spreadsheet or CRM export for pre-seeding?</li>
+  <li>CQ go-live date — determines how long this pre-CQ tool must run</li>
+  <li>CQ field mapping — has CQ documented its import format?</li>
+  <li>Role provisioning — who manages Supabase Auth user accounts?</li>
+</ul>
+
+<hr/>
+<p style="text-align:center; color:#888; font-size:11px; margin-top:30px;">
+  Go Time Transportation — Pre-CQ Build Plan — CONFIDENTIAL &amp; HIPAA-SENSITIVE | All Phases | April 2026
+</p>
+
+</body>
+</html>
