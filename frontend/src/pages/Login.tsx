@@ -86,7 +86,7 @@ export function Login() {
                 {isSubmitting ? 'Signing in…' : 'Sign in'}
               </Button>
 
-              {import.meta.env.DEV && !isSupabaseConfigured && (
+              {!isSupabaseConfigured && (
                 <Button
                   type="button"
                   variant="outline"
