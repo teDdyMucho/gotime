@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { ArrowLeft, AlertTriangle, Bell, Phone, Mail, MapPin, Calendar, Clock, User, Building2, CreditCard } from 'lucide-react'
+import { ArrowLeft, AlertTriangle, Bell, Phone, Mail, MapPin, Calendar, User, Building2, CreditCard } from 'lucide-react'
 import { formatDate, formatDateTime, formatCurrency } from '@/lib/utils'
 
 const DECLINE_REASONS: { value: DeclineReason; label: string }[] = [
