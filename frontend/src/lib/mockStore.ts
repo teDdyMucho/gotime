@@ -5,7 +5,7 @@
 
 import type {
   PaySource, Facility, Requestor, Client, TripRequest,
-  ReviewState, DeclineReason, CancellationReason, OutcomeCategory,
+  ReviewState, DeclineReason, OutcomeCategory,
   NotificationLog,
 } from './types'
 
