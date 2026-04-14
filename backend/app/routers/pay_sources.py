@@ -43,5 +43,5 @@ def create_pay_source(
     user: dict = Depends(require_admin),
 ):
     db = get_supabase()
-    result = db.table("pay_sources").insert(body.model_dump(exclude_none=True)).execute()
+    result = db.table("pay_sources").insert(body.model_dump(mode='json', exclude_none=True)).execute()
     return result.data[0]

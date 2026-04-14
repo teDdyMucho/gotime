@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { getAccessToken } from './auth'
+import { getAccessToken, supabase } from './auth'
 import * as mock from './mockApi'
 
 // ----------------------------------------------------------------
@@ -22,6 +22,24 @@ api.interceptors.request.use(async (config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
+
+// Auto-retry once on 401 with a force-refreshed token
+api.interceptors.response.use(
+  (res) => res,
+  async (err) => {
+    const original = err.config
+    if (err.response?.status === 401 && !original._retry && supabase) {
+      original._retry = true
+      const { data } = await supabase.auth.refreshSession()
+      const token = data.session?.access_token
+      if (token) {
+        original.headers.Authorization = `Bearer ${token}`
+        return api(original)
+      }
+    }
+    return Promise.reject(err)
+  }
+)
 
 // ---- Real API objects ----
 
@@ -59,14 +77,16 @@ const realTripsApi = {
     api.patch(`/trips/${id}/cancel`, data),
   notify: (id: string, data: { message_type: string; recipient_ids?: string[] }) =>
     api.post(`/trips/${id}/notify`, data),
+  export: (params?: Record<string, string>) =>
+    api.get('/trips/export', { params, responseType: 'blob' }),
 }
 
 const realMetricsApi = {
-  summary:     (params?: Record<string, string>) => api.get('/metrics/summary', { params }),
-  byFacility:  (params?: Record<string, string>) => api.get('/metrics/by-facility', { params }),
+  summary:     (params?: Record<string, string>) => api.get('/metrics/summary',       { params }),
+  byFacility:  (params?: Record<string, string>) => api.get('/metrics/by-facility',   { params }),
   byPaySource: (params?: Record<string, string>) => api.get('/metrics/by-pay-source', { params }),
-  revenue:     (params?: Record<string, string>) => api.get('/metrics/revenue', { params }),
-  quality:     (params?: Record<string, string>) => api.get('/metrics/quality', { params }),
+  revenue:     (params?: Record<string, string>) => api.get('/metrics/revenue',       { params }),
+  quality:     (params?: Record<string, string>) => api.get('/metrics/quality',       { params }),
 }
 
 const realAuditApi = {

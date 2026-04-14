@@ -56,9 +56,16 @@ async def trigger_manual_alert(
 
 
 async def _post_webhook(url: str, payload: dict) -> None:
+    # Skip if n8n base URL is not configured
+    if not settings.n8n_webhook_base_url:
+        return
     headers = {}
     if settings.n8n_api_key:
         headers["X-N8N-API-KEY"] = settings.n8n_api_key
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        response = await client.post(url, json=payload, headers=headers)
-        response.raise_for_status()
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(url, json=payload, headers=headers)
+            response.raise_for_status()
+    except Exception:
+        # Don't crash the trip action if the notification fails
+        pass

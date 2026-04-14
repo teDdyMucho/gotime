@@ -218,7 +218,7 @@ export function IntakeForm() {
 
             <FormField label="Facility" required error={errors.facility_id?.message}>
               <Controller name="facility_id" control={control} render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
+                <Select value={field.value ?? ''} onValueChange={field.onChange}>
                   <SelectTrigger><SelectValue placeholder="Select facility…" /></SelectTrigger>
                   <SelectContent>
                     {facilities.map((f) => (
@@ -232,7 +232,7 @@ export function IntakeForm() {
             <FormField label="Requestor" required error={errors.requestor_id?.message}>
               <div className="flex gap-1.5">
                 <Controller name="requestor_id" control={control} render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select value={field.value ?? ''} onValueChange={field.onChange}>
                     <SelectTrigger className="flex-1"><SelectValue placeholder="Select requestor…" /></SelectTrigger>
                     <SelectContent>
                       {filteredRequestors.map((r) => (
@@ -270,7 +270,7 @@ export function IntakeForm() {
             <FormField label="Client" required error={errors.client_id?.message}>
               <div className="flex gap-1.5">
                 <Controller name="client_id" control={control} render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select value={field.value ?? ''} onValueChange={field.onChange}>
                     <SelectTrigger className="flex-1"><SelectValue placeholder="Select client…" /></SelectTrigger>
                     <SelectContent>
                       {clients.map((c) => (
@@ -462,7 +462,7 @@ export function IntakeForm() {
 
       {/* Quick-add Client Dialog */}
       <Dialog open={quickClientOpen} onOpenChange={setQuickClientOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Quick-Add Client</DialogTitle>
           </DialogHeader>
@@ -510,7 +510,7 @@ export function IntakeForm() {
 
       {/* Quick-add Requestor Dialog */}
       <Dialog open={quickRequestorOpen} onOpenChange={setQuickRequestorOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Quick-Add Requestor</DialogTitle>
           </DialogHeader>

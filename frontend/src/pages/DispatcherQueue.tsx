@@ -8,8 +8,9 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { AlertTriangle, Search, Plus, RefreshCw, ArrowUpDown } from 'lucide-react'
+import { AlertTriangle, Search, Plus, RefreshCw, ArrowUpDown, Download } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
+import api from '@/lib/api'
 
 const STATE_OPTIONS: { value: ReviewState | 'all'; label: string }[] = [
   { value: 'all',              label: 'All States' },
@@ -87,6 +88,20 @@ export function DispatcherQueue() {
 
   const pendingCount = trips.filter((t) => t.review_state === 'pending').length
 
+  async function handleExportCsv() {
+    const exportParams = new URLSearchParams()
+    if (stateFilter !== 'all')     exportParams.set('review_state',  stateFilter)
+    if (facilityFilter !== 'all')  exportParams.set('facility_id',   facilityFilter)
+    if (paySourceFilter !== 'all') exportParams.set('pay_source_id', paySourceFilter)
+    const res = await api.get(`/trips/export?${exportParams.toString()}`, { responseType: 'blob' })
+    const url = URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `gotime_trips_${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -98,10 +113,16 @@ export function DispatcherQueue() {
             </span>
           )}
         </div>
-        <Button onClick={() => navigate('/intake')}>
-          <Plus className="h-4 w-4 mr-1.5" />
-          New Trip
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleExportCsv}>
+            <Download className="h-4 w-4 mr-1.5" />
+            Export CSV
+          </Button>
+          <Button onClick={() => navigate('/intake')}>
+            <Plus className="h-4 w-4 mr-1.5" />
+            New Trip
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}

@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import StreamingResponse
 from uuid import UUID
 from datetime import datetime, timezone
+import csv, io
 from app.models.trip import TripCreate, TripReviewAction, TripCancelAction, TripResponse
 from app.core.security import require_intake_or_above, require_dispatcher_or_above
 from app.db.supabase import get_supabase
@@ -17,18 +19,12 @@ def create_trip(
     user: dict = Depends(require_intake_or_above),
 ):
     db = get_supabase()
-    data = body.model_dump(exclude_none=True)
-    # Convert date/time fields to strings
-    for field in ["trip_date", "appointment_time", "requested_pickup_time"]:
-        if field in data and data[field]:
-            data[field] = str(data[field])
+    data = body.model_dump(mode='json', exclude_none=True)
     if "expected_revenue" in data:
         data["expected_revenue"] = float(data["expected_revenue"])
     data["intake_staff_user_id"] = user["user_id"]
     data["intake_date"] = datetime.now(timezone.utc).isoformat()
     data["review_state"] = "pending"
-    data["created_by"] = user["user_id"]
-    data["updated_by"] = user["user_id"]
     result = db.table("trip_requests").insert(data).execute()
     log_event("trip_request", result.data[0]["id"], "create", user["user_id"],
               ip_address=request.client.host if request.client else None,
@@ -65,6 +61,80 @@ def list_trips(
         query = query.eq("trip_date", trip_date)
     result = query.order("trip_date").order("intake_date").range(offset, offset + page_size - 1).execute()
     return result.data
+
+
+@router.get("/export")
+def export_trips_csv(
+    review_state: str = Query(""),
+    facility_id: str = Query(""),
+    pay_source_id: str = Query(""),
+    date_from: str = Query(""),
+    date_to: str = Query(""),
+    user: dict = Depends(require_dispatcher_or_above),
+):
+    """Export filtered trips as a CSV download."""
+    db = get_supabase()
+    query = db.table("trip_requests").select("*")
+    if review_state:
+        query = query.eq("review_state", review_state)
+    if facility_id:
+        query = query.eq("facility_id", facility_id)
+    if pay_source_id:
+        query = query.eq("pay_source_id", pay_source_id)
+    if date_from:
+        query = query.gte("trip_date", date_from)
+    if date_to:
+        query = query.lte("trip_date", date_to)
+    trips = query.order("trip_date").execute().data
+
+    # Build lookup maps for human-readable names
+    facilities   = {f["id"]: f["name"] for f in db.table("facilities").select("id,name").execute().data}
+    requestors   = {r["id"]: r["name"] for r in db.table("requestors").select("id,name").execute().data}
+    clients      = {c["id"]: c["full_name"] for c in db.table("clients").select("id,full_name").execute().data}
+    pay_sources  = {p["id"]: p["name"] for p in db.table("pay_sources").select("id,name").execute().data}
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "Trip ID", "Trip Date", "Intake Date", "State", "Urgency",
+        "Client", "Facility", "Requestor", "Pay Source",
+        "Appointment Type", "Trip Type",
+        "Pickup Address", "Dropoff Address",
+        "Expected Revenue", "Final Revenue",
+        "Decline Reason", "Cancellation Reason",
+        "Missing Info", "Trip Order ID", "Review Notes",
+    ])
+    for t in trips:
+        writer.writerow([
+            t.get("id", ""),
+            t.get("trip_date", ""),
+            t.get("intake_date", "")[:10] if t.get("intake_date") else "",
+            t.get("review_state", ""),
+            t.get("urgency_level", ""),
+            clients.get(t.get("client_id", ""), ""),
+            facilities.get(t.get("facility_id", ""), ""),
+            requestors.get(t.get("requestor_id", ""), ""),
+            pay_sources.get(t.get("pay_source_id", ""), ""),
+            t.get("appointment_type", ""),
+            t.get("trip_type", ""),
+            t.get("pickup_address", ""),
+            t.get("dropoff_address", ""),
+            t.get("expected_revenue", ""),
+            t.get("final_revenue", ""),
+            t.get("decline_reason", ""),
+            t.get("cancellation_reason", ""),
+            "Yes" if t.get("missing_info_flag") else "No",
+            t.get("trip_order_id", ""),
+            t.get("review_notes", ""),
+        ])
+
+    output.seek(0)
+    filename = f"gotime_trips_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.csv"
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
 
 
 @router.get("/{trip_id}", response_model=TripResponse)
@@ -109,7 +179,6 @@ async def review_trip(
         "reviewed_by": user["user_id"],
         "reviewed_at": datetime.now(timezone.utc).isoformat(),
         "review_notes": body.review_notes,
-        "updated_by": user["user_id"],
     }
     if body.action == "accept":
         update_data["outcome_category"] = "accepted"
@@ -159,7 +228,6 @@ async def cancel_trip(
         "cancellation_reason": body.cancellation_reason,
         "outcome_category": new_state,
         "review_notes": body.review_notes,
-        "updated_by": user["user_id"],
         "reviewed_at": datetime.now(timezone.utc).isoformat(),
     }
     result = db.table("trip_requests").update(update_data).eq("id", str(trip_id)).execute()

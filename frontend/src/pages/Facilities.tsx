@@ -159,7 +159,7 @@ export function Facilities() {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="max-w-xl" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>{editing ? 'Edit Facility' : 'Add Facility'}</DialogTitle>
           </DialogHeader>

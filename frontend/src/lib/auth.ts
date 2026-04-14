@@ -78,5 +78,14 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 export async function getAccessToken(): Promise<string | null> {
   if (!supabase) return null
   const { data: { session } } = await supabase.auth.getSession()
-  return session?.access_token ?? null
+  if (!session) return null
+
+  // If token is expired or about to expire (within 60s), refresh it
+  const exp = JSON.parse(atob(session.access_token.split('.')[1])).exp as number
+  if (exp * 1000 < Date.now() + 60_000) {
+    const { data } = await supabase.auth.refreshSession()
+    return data.session?.access_token ?? null
+  }
+
+  return session.access_token
 }
