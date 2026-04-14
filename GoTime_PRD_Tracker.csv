@@ -7,25 +7,25 @@ PHASE 0 — Discovery & Setup (Week 1),5,Supabase SQL migrations (001-009),§8 D
 PHASE 0 — Discovery & Setup (Week 1),6,Mock in-memory store (mockStore.ts),§8 Data Models,✅ Completed Done,Done — Store class seed data 8 trips 8 clients 5 facilities 5 requestors,April 2 2026
 PHASE 0 — Discovery & Setup (Week 1),7,Mock API layer (mockApi.ts) matching real api.ts interface,§9.1 REST Endpoints,✅ Completed Done,Done — all endpoints match real API shape zero code changes needed on connect,April 2 2026
 PHASE 0 — Discovery & Setup (Week 1),8,Seed data (pay sources / facilities / requestors / clients / trips),§8 Data Models,✅ Completed Done,Done — 7 pay sources 5 facilities 5 requestors 8 clients 8 trips mixed states,April 2 2026
-PHASE 0 — Discovery & Setup (Week 1),9,Supabase project creation (real — production),§7.2 Supabase,❌ Missing,Create real Supabase project configure env vars VITE_SUPABASE_URL + ANON_KEY,
+PHASE 0 — Discovery & Setup (Week 1),9,Supabase project creation (real — production),§7.2 Supabase,✅ Completed Done,Done — real Supabase project live frontend/.env + backend/.env configured with URL + keys,April 14 2026
 PHASE 0 — Discovery & Setup (Week 1),10,n8n instance setup (self-hosted or n8n Cloud),§7.2 n8n,❌ Missing,Spin up n8n instance configure workspace connect to Supabase,
 PHASE 0 — Discovery & Setup (Week 1),11,Netlify project setup + staging domain,§7.2 Netlify,❌ Missing,Create Netlify project connect repo set env vars configure staging URL,
 PHASE 0 — Discovery & Setup (Week 1),12,BAA pursuit started for all 5 vendors,§6.5 BAA Checklist,❌ Missing,Initiate BAA with Supabase Twilio SendGrid n8n Netlify — CRITICAL before any PHI,
-PHASE 1 — Core Backend (Weeks 2–3),1,Supabase schema deployed (all 7 tables),§8 Data Models,⚠️ Partial,SQL migrations written — need to run against real Supabase project,
-PHASE 1 — Core Backend (Weeks 2–3),2,Row Level Security (RLS) policies on all PHI tables,§6.3 RBAC,❌ Missing,Write + deploy RLS policies for trips clients facilities requestors per role,
-PHASE 1 — Core Backend (Weeks 2–3),3,Supabase Auth with 3 roles (intake_staff / senior_dispatcher / admin),§6.3 RBAC,❌ Missing,Enable Supabase Auth set up user_roles table configure JWT role claims,
-PHASE 1 — Core Backend (Weeks 2–3),4,Python FastAPI skeleton + Docker setup,§7.2 FastAPI,❌ Missing,Init FastAPI project Dockerfile env config deploy to Railway or Render,
-PHASE 1 — Core Backend (Weeks 2–3),5,CRUD endpoints — facilities / requestors / clients / pay_sources,§9.1 REST Endpoints,❌ Missing,Implement GET POST PATCH for all 4 entity types with validation,
-PHASE 1 — Core Backend (Weeks 2–3),6,Trip intake POST + GET (list + single),§9.1 REST Endpoints,❌ Missing,POST /api/trips GET /api/trips GET /api/trips/{id} with filters,
-PHASE 1 — Core Backend (Weeks 2–3),7,Audit log table + write-on-every-mutation middleware,§FR-09 Audit Log,❌ Missing,FastAPI middleware writes to audit_log on every create/update/state change,
-PHASE 2 — Dispatcher Workflow (Week 4),1,PATCH /api/trips/{id}/review (accept / decline / return),§9.1 REST Endpoints,❌ Missing,Implement review endpoint state machine reason code validation,
-PHASE 2 — Dispatcher Workflow (Week 4),2,PATCH /api/trips/{id}/cancel (cancel + arrived-cancel),§9.1 REST Endpoints,❌ Missing,Cancel endpoint with cancellation_reason validation outcome_category set,
+PHASE 1 — Core Backend (Weeks 2–3),1,Supabase schema deployed (all 7 tables),§8 Data Models,✅ Completed Done,Done — all 9 migrations ran against real Supabase project (7 tables + metrics views + roles),April 14 2026
+PHASE 1 — Core Backend (Weeks 2–3),2,Row Level Security (RLS) policies on all PHI tables,§6.3 RBAC,✅ Completed Done,Done — RLS enabled + read/write policies deployed on all tables via migrations 001-009,April 14 2026
+PHASE 1 — Core Backend (Weeks 2–3),3,Supabase Auth with 3 roles (intake_staff / senior_dispatcher / admin),§6.3 RBAC,✅ Completed Done,Done — Supabase Auth live user created with role:admin in user_metadata JWT verification via JWKS,April 14 2026
+PHASE 1 — Core Backend (Weeks 2–3),4,Python FastAPI skeleton + Docker setup,§7.2 FastAPI,✅ Completed Done,Done — FastAPI + uvicorn running on port 8000 Python 3.11 installed all deps from requirements.txt,April 14 2026
+PHASE 1 — Core Backend (Weeks 2–3),5,CRUD endpoints — facilities / requestors / clients / pay_sources,§9.1 REST Endpoints,✅ Completed Done,Done — GET POST PATCH implemented for all 4 entity types with Supabase service role client,April 14 2026
+PHASE 1 — Core Backend (Weeks 2–3),6,Trip intake POST + GET (list + single),§9.1 REST Endpoints,✅ Completed Done,Done — POST /api/trips GET /api/trips GET /api/trips/{id} all working with filters + pagination,April 14 2026
+PHASE 1 — Core Backend (Weeks 2–3),7,Audit log table + write-on-every-mutation middleware,§FR-09 Audit Log,✅ Completed Done,Done — audit_service.log_event() called on every create/update/state change in all routers,April 14 2026
+PHASE 2 — Dispatcher Workflow (Week 4),1,PATCH /api/trips/{id}/review (accept / decline / return),§9.1 REST Endpoints,✅ Completed Done,Done — state machine with reason code validation outcome_category set reviewed_by/at stamped,April 14 2026
+PHASE 2 — Dispatcher Workflow (Week 4),2,PATCH /api/trips/{id}/cancel (cancel + arrived-cancel),§9.1 REST Endpoints,✅ Completed Done,Done — cancel endpoint with cancellation_reason validation arrived_cancel handled separately,April 14 2026
 PHASE 2 — Dispatcher Workflow (Week 4),3,Reason code validation (decline + return-for-info required),§FR-06 Reason Codes,✅ Completed Done,Done — UI enforces reason code selection before saving decision,April 2 2026
-PHASE 2 — Dispatcher Workflow (Week 4),4,n8n webhook triggers (trip_accepted / declined / returned / canceled),§9.2 n8n Triggers,❌ Missing,FastAPI calls n8n webhook after each decision transition,
-PHASE 2 — Dispatcher Workflow (Week 4),5,Twilio SMS workflow in n8n (accepted / declined / returned),§9.3 Twilio,❌ Missing,Build n8n workflow per decision type select template call Twilio API log result,
+PHASE 2 — Dispatcher Workflow (Week 4),4,n8n webhook triggers (trip_accepted / declined / returned / canceled),§9.2 n8n Triggers,⚠️ Partial,notification_service.py fires webhooks — waiting on n8n instance to be set up to receive them,
+PHASE 2 — Dispatcher Workflow (Week 4),5,Twilio SMS workflow in n8n,§9.3 Twilio,❌ Missing,Build n8n workflow per decision type select template call Twilio API log result,
 PHASE 2 — Dispatcher Workflow (Week 4),6,SendGrid email workflow in n8n,§9.4 SendGrid,❌ Missing,Build n8n workflow per decision type use dynamic transactional templates log result,
 PHASE 2 — Dispatcher Workflow (Week 4),7,Notification log — backend writes delivery results,§FR-07 Notifications,⚠️ Partial,Mock log UI done — needs real Twilio/SendGrid delivery webhook → notification_log,
-PHASE 3 — Frontend / Netlify (Weeks 5–6),1,Login page + dev bypass button,§6.3 RBAC,✅ Completed Done,Done — Supabase Auth login + mock bypass,April 2 2026
+PHASE 3 — Frontend / Netlify (Weeks 5–6),1,Login page + dev bypass button,§6.3 RBAC,✅ Completed Done,Done — Supabase Auth login working with real project,April 14 2026
 PHASE 3 — Frontend / Netlify (Weeks 5–6),2,App layout (sidebar + topbar + outlet),§7.2 Netlify,✅ Completed Done,Done — AppLayout Sidebar TopBar with role-filtered nav,April 2 2026
 PHASE 3 — Frontend / Netlify (Weeks 5–6),3,RBAC route guards (RequireAuth + role check),§6.3 RBAC,✅ Completed Done,Done — RequireAuth in App.tsx enforces role per route,April 2 2026
 PHASE 3 — Frontend / Netlify (Weeks 5–6),4,Intake form — all 5 sections with linked dropdowns,§FR-04 Intake Form,✅ Completed Done,Done — intake client trip billing quality sections all linked to entity dropdowns,April 2 2026
@@ -50,9 +50,9 @@ PHASE 4 — Reporting Dashboard (Week 7),4,Trips by Facility horizontal bar char
 PHASE 4 — Reporting Dashboard (Week 7),5,Trips by Pay Source bar chart,§FR-08 Dashboard,✅ Completed Done,Done — recharts BarChart accepted vs declined per pay source,April 2 2026
 PHASE 4 — Reporting Dashboard (Week 7),6,Quality metrics — missing info rate + return rate stat cards,§FR-08 Dashboard,✅ Completed Done,Done — color-coded thresholds green/amber/red,April 2 2026
 PHASE 4 — Reporting Dashboard (Week 7),7,Top Decline Reasons bar chart,§FR-08 Dashboard,✅ Completed Done,Done — getMetricsQuality() powers recharts BarChart,April 2 2026
-PHASE 4 — Reporting Dashboard (Week 7),8,Date range filter on dashboard,§FR-08 Dashboard,❌ Missing,Add from/to date pickers pass to metrics API filter trips by intake_date range,
-PHASE 4 — Reporting Dashboard (Week 7),9,Facility filter on dashboard,§FR-08 Dashboard,❌ Missing,Add facility Select pass facility_id param to all metrics queries,
-PHASE 4 — Reporting Dashboard (Week 7),10,CSV export for trip records,§FR-08 Dashboard,❌ Missing,Add Export CSV button on queue page converts filtered trips to downloadable CSV,
+PHASE 4 — Reporting Dashboard (Week 7),8,Date range filter on dashboard,§FR-08 Dashboard,✅ Completed Done,Done — from/to date pickers + Clear button — all metric queries re-run with params,April 15 2026
+PHASE 4 — Reporting Dashboard (Week 7),9,Facility filter on dashboard,§FR-08 Dashboard,✅ Completed Done,Done — facility Select dropdown passes facility_id to all metrics queries,April 15 2026
+PHASE 4 — Reporting Dashboard (Week 7),10,CSV export for trip records,§FR-08 Dashboard,✅ Completed Done,Done — Export CSV button on queue page GET /api/trips/export streams filtered CSV download,April 15 2026
 PHASE 5 — HIPAA Hardening (Week 8),1,Column-level PHI encryption (pgcrypto / Supabase Vault),§6.2 Encryption,❌ Missing,Encrypt DOB phone primary_address pickup_address dropoff_address in Postgres,
 PHASE 5 — HIPAA Hardening (Week 8),2,MFA enforcement for Admin role,§6.3 RBAC,❌ Missing,Enforce TOTP MFA in Supabase Auth for admin accounts,
 PHASE 5 — HIPAA Hardening (Week 8),3,Session timeout ≤ 30 min inactivity,§6.3 RBAC,❌ Missing,Configure Supabase session timeout add idle detection in frontend,

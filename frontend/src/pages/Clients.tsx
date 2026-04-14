@@ -77,14 +77,14 @@ export function Clients() {
     setEditing(c)
     reset({
       full_name: c.full_name,
-      date_of_birth: c.date_of_birth,
-      phone: c.phone,
-      primary_address: c.primary_address,
-      mobility_level: c.mobility_level,
-      special_assistance_notes: c.special_assistance_notes,
-      default_pay_source_id: c.default_pay_source_id,
-      primary_facility_id: c.primary_facility_id,
-      recurring_notes: c.recurring_notes,
+      date_of_birth: c.date_of_birth ?? undefined,
+      phone: c.phone ?? undefined,
+      primary_address: c.primary_address ?? undefined,
+      mobility_level: c.mobility_level ?? undefined,
+      special_assistance_notes: c.special_assistance_notes ?? undefined,
+      default_pay_source_id: c.default_pay_source_id ?? undefined,
+      primary_facility_id: c.primary_facility_id ?? undefined,
+      recurring_notes: c.recurring_notes ?? undefined,
     })
     setApiError(null)
     setDialogOpen(true)
@@ -177,7 +177,7 @@ export function Clients() {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="max-w-xl" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>{editing ? 'Edit Client' : 'Add Client'}</DialogTitle>
           </DialogHeader>

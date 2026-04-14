@@ -1,8 +1,12 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { metricsApi } from '@/lib/api'
+import { metricsApi, facilitiesApi } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
-import type { MetricsSummary, RevenueMetrics, QualityMetrics } from '@/lib/types'
+import type { MetricsSummary, RevenueMetrics, QualityMetrics, Facility } from '@/lib/types'
 import {
   BarChart,
   Bar,
@@ -42,29 +46,43 @@ function StatCard({ label, value, sub, color }: { label: string; value: number |
 }
 
 export function Dashboard() {
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo]     = useState('')
+  const [facilityId, setFacilityId] = useState('all')
+
+  const params: Record<string, string> = {}
+  if (dateFrom)              params.date_from   = dateFrom
+  if (dateTo)                params.date_to     = dateTo
+  if (facilityId !== 'all')  params.facility_id = facilityId
+
+  const { data: facilities = [] } = useQuery<Facility[]>({
+    queryKey: ['facilities'],
+    queryFn: async () => (await facilitiesApi.list()).data,
+  })
+
   const { data: summary, isLoading: loadingSummary } = useQuery<MetricsSummary>({
-    queryKey: ['metrics-summary'],
-    queryFn: async () => (await metricsApi.summary()).data,
+    queryKey: ['metrics-summary', params],
+    queryFn: async () => (await metricsApi.summary(params)).data,
   })
 
   const { data: revenue, isLoading: loadingRevenue } = useQuery<RevenueMetrics>({
-    queryKey: ['metrics-revenue'],
-    queryFn: async () => (await metricsApi.revenue()).data,
+    queryKey: ['metrics-revenue', params],
+    queryFn: async () => (await metricsApi.revenue(params)).data,
   })
 
   const { data: byFacility, isLoading: loadingFacility } = useQuery<{ facility_name: string; total: number; accepted: number; declined: number }[]>({
-    queryKey: ['metrics-by-facility'],
-    queryFn: async () => (await metricsApi.byFacility()).data,
+    queryKey: ['metrics-by-facility', params],
+    queryFn: async () => (await metricsApi.byFacility(params)).data,
   })
 
   const { data: byPaySource } = useQuery<{ pay_source_name: string; total: number; accepted: number; declined: number; completed_revenue: number }[]>({
-    queryKey: ['metrics-by-pay-source'],
-    queryFn: async () => (await metricsApi.byPaySource()).data,
+    queryKey: ['metrics-by-pay-source', params],
+    queryFn: async () => (await metricsApi.byPaySource(params)).data,
   })
 
   const { data: quality } = useQuery<QualityMetrics>({
-    queryKey: ['metrics-quality'],
-    queryFn: async () => (await metricsApi.quality()).data,
+    queryKey: ['metrics-quality', params],
+    queryFn: async () => (await metricsApi.quality(params)).data,
   })
 
   if (loadingSummary || loadingRevenue || loadingFacility) {
@@ -89,7 +107,48 @@ export function Dashboard() {
   return (
     <div className="space-y-6">
 
-      <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
+
+        {/* Filters */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <label className="text-xs text-gray-500 whitespace-nowrap">From</label>
+            <Input
+              type="date"
+              className="h-8 text-sm w-36"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-1.5">
+            <label className="text-xs text-gray-500 whitespace-nowrap">To</label>
+            <Input
+              type="date"
+              className="h-8 text-sm w-36"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+            />
+          </div>
+          <Select value={facilityId} onValueChange={setFacilityId}>
+            <SelectTrigger className="h-8 text-sm w-44"><SelectValue placeholder="All Facilities" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Facilities</SelectItem>
+              {facilities.map((f) => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          {(dateFrom || dateTo || facilityId !== 'all') && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={() => { setDateFrom(''); setDateTo(''); setFacilityId('all') }}
+            >
+              Clear
+            </Button>
+          )}
+        </div>
+      </div>
 
       {/* Summary cards */}
       {summary && (

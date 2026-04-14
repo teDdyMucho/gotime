@@ -344,7 +344,7 @@ export function TripDetail() {
 
       {/* ---- Review Dialog ---- */}
       <Dialog open={reviewDialog !== null} onOpenChange={(o) => !o && setReviewDialog(null)}>
-        <DialogContent>
+        <DialogContent aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>
               {reviewDialog === 'accept' && 'Accept Trip'}
@@ -383,7 +383,7 @@ export function TripDetail() {
 
       {/* ---- Cancel Dialog ---- */}
       <Dialog open={cancelDialog} onOpenChange={setCancelDialog}>
-        <DialogContent>
+        <DialogContent aria-describedby={undefined}>
           <DialogHeader><DialogTitle>Cancel Trip</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
@@ -410,7 +410,7 @@ export function TripDetail() {
 
       {/* ---- Notify Dialog ---- */}
       <Dialog open={notifyDialog} onOpenChange={setNotifyDialog}>
-        <DialogContent>
+        <DialogContent aria-describedby={undefined}>
           <DialogHeader><DialogTitle>Send Notification</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
             {requestor && (

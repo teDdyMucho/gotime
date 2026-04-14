@@ -21,7 +21,6 @@ def list_clients(
     if facility_id:
         query = query.eq("primary_facility_id", facility_id)
     result = query.order("full_name").execute()
-    log_event("client", "list", "access", user["user_id"])
     return result.data
 
 
@@ -31,9 +30,7 @@ def create_client(
     user: dict = Depends(require_intake_or_above),
 ):
     db = get_supabase()
-    data = body.model_dump(exclude_none=True)
-    if "date_of_birth" in data and data["date_of_birth"]:
-        data["date_of_birth"] = str(data["date_of_birth"])
+    data = body.model_dump(mode='json', exclude_none=True)
     data["created_by"] = user["user_id"]
     data["updated_by"] = user["user_id"]
     result = db.table("clients").insert(data).execute()
@@ -64,9 +61,7 @@ def update_client(
     existing = db.table("clients").select("*").eq("id", str(client_id)).execute()
     if not existing.data:
         raise HTTPException(status_code=404, detail="Client not found")
-    data = body.model_dump(exclude_none=True)
-    if "date_of_birth" in data and data["date_of_birth"]:
-        data["date_of_birth"] = str(data["date_of_birth"])
+    data = body.model_dump(mode='json', exclude_none=True)
     data["updated_by"] = user["user_id"]
     result = db.table("clients").update(data).eq("id", str(client_id)).execute()
     log_event("client", str(client_id), "update", user["user_id"])

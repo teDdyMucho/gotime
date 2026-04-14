@@ -41,7 +41,14 @@ class Settings(BaseSettings):
 
     @property
     def origins_list(self) -> list[str]:
-        return [o.strip() for o in self.allowed_origins.split(",")]
+        origins = [o.strip() for o in self.allowed_origins.split(",")]
+        # In development, allow all localhost ports (5173–5200) so Vite port shifts don't break CORS
+        if self.environment == "development":
+            for port in range(5173, 5201):
+                origin = f"http://localhost:{port}"
+                if origin not in origins:
+                    origins.append(origin)
+        return origins
 
     class Config:
         env_file = ".env"

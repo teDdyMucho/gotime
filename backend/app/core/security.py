@@ -1,3 +1,5 @@
+import httpx
+from functools import lru_cache
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt, JWTError
@@ -9,21 +11,46 @@ bearer_scheme = HTTPBearer()
 ROLES = ["intake_staff", "senior_dispatcher", "admin"]
 
 
+@lru_cache()
+def _get_jwks() -> list:
+    """Fetch and cache Supabase JWKS public keys."""
+    r = httpx.get(
+        f"{settings.supabase_url}/auth/v1/.well-known/jwks.json",
+        timeout=10,
+    )
+    r.raise_for_status()
+    return r.json()["keys"]
+
+
 def verify_token(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)) -> dict:
-    """Verify Supabase JWT and return decoded payload."""
+    """Verify Supabase JWT using JWKS public key."""
     token = credentials.credentials
     try:
-        payload = jwt.decode(
-            token,
-            settings.supabase_anon_key,
-            algorithms=["HS256"],
-            options={"verify_aud": False},
-        )
-        return payload
+        keys = _get_jwks()
+        # Try each key (usually just one)
+        last_err = None
+        for key in keys:
+            try:
+                payload = jwt.decode(
+                    token,
+                    key,
+                    algorithms=[key.get("alg", "ES256")],
+                    options={"verify_aud": False},
+                )
+                return payload
+            except JWTError as e:
+                last_err = e
+                continue
+        raise last_err or JWTError("No valid key found")
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token verification failed",
         )
 
 

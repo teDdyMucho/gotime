@@ -1,28 +1,30 @@
 import { useState, useEffect } from 'react'
-import { supabase, getCurrentUser } from '@/lib/auth'
-import type { AuthUser } from '@/lib/types'
+import { supabase } from '@/lib/auth'
+import type { AuthUser, Role } from '@/lib/types'
 
 export function useAuth() {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getCurrentUser().then((u) => {
-      setUser(u)
-      setLoading(false)
-    })
-
     if (!supabase) {
+      setLoading(false)
       return
     }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    // onAuthStateChange fires immediately with INITIAL_SESSION —
+    // no need for a separate getUser() call or timeout.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        const u = await getCurrentUser()
-        setUser(u)
+        setUser({
+          user_id: session.user.id,
+          email: session.user.email ?? '',
+          role: (session.user.user_metadata?.role ?? 'intake_staff') as Role,
+        })
       } else {
         setUser(null)
       }
+      setLoading(false)
     })
 
     return () => subscription.unsubscribe()

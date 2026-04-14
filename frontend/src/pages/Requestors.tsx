@@ -74,13 +74,13 @@ export function Requestors() {
     setEditing(r)
     reset({
       name: r.name,
-      title_department: r.title_department,
-      phone: r.phone,
+      title_department: r.title_department ?? undefined,
+      phone: r.phone ?? undefined,
       email: r.email ?? '',
       preferred_notification_method: r.preferred_notification_method,
       facility_id: r.facility_id,
       status: r.status,
-      notes: r.notes,
+      notes: r.notes ?? undefined,
     })
     setApiError(null)
     setDialogOpen(true)
@@ -176,7 +176,7 @@ export function Requestors() {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>{editing ? 'Edit Requestor' : 'Add Requestor'}</DialogTitle>
           </DialogHeader>

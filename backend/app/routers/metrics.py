@@ -1,9 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from app.core.security import require_dispatcher_or_above
 from app.db.supabase import get_supabase
-from fastapi.responses import StreamingResponse
-import csv
-import io
+from collections import Counter
 
 router = APIRouter(prefix="/metrics", tags=["Metrics"])
 
@@ -102,3 +100,98 @@ def revenue(
         elif state in ("canceled", "arrived_canceled"):
             result["canceled_revenue"] += exp
     return result
+
+
+@router.get("/by-pay-source")
+def by_pay_source(
+    date_from: str = Query(""),
+    date_to: str = Query(""),
+    user: dict = Depends(require_dispatcher_or_above),
+):
+    db = get_supabase()
+    query = db.table("trip_requests").select("pay_source_id, review_state, expected_revenue, final_revenue")
+    if date_from:
+        query = query.gte("trip_date", date_from)
+    if date_to:
+        query = query.lte("trip_date", date_to)
+    trips = query.execute().data
+
+    pay_sources_result = db.table("pay_sources").select("id, name").execute()
+    ps_map = {p["id"]: p["name"] for p in pay_sources_result.data}
+
+    grouped: dict = {}
+    for t in trips:
+        psid = t.get("pay_source_id") or "__none__"
+        if psid not in grouped:
+            grouped[psid] = {
+                "pay_source_id": psid if psid != "__none__" else None,
+                "pay_source_name": ps_map.get(psid, "Unknown") if psid != "__none__" else "No Pay Source",
+                "total": 0, "accepted": 0, "declined": 0, "completed": 0,
+                "canceled": 0, "arrived_canceled": 0, "completed_revenue": 0.0,
+            }
+        grouped[psid]["total"] += 1
+        state = t.get("review_state", "")
+        if state in grouped[psid]:
+            grouped[psid][state] += 1
+        if state == "completed":
+            grouped[psid]["completed_revenue"] += float(t.get("final_revenue") or t.get("expected_revenue") or 0)
+    return list(grouped.values())
+
+
+@router.get("/quality")
+def quality(
+    date_from: str = Query(""),
+    date_to: str = Query(""),
+    facility_id: str = Query(""),
+    user: dict = Depends(require_dispatcher_or_above),
+):
+    db = get_supabase()
+    query = db.table("trip_requests").select(
+        "review_state, decline_reason, cancellation_reason, missing_info_flag, intake_date, reviewed_at"
+    )
+    if date_from:
+        query = query.gte("trip_date", date_from)
+    if date_to:
+        query = query.lte("trip_date", date_to)
+    if facility_id:
+        query = query.eq("facility_id", facility_id)
+    trips = query.execute().data
+
+    total = len(trips)
+    missing_count = sum(1 for t in trips if t.get("missing_info_flag"))
+    returned_count = sum(1 for t in trips if t.get("review_state") == "returned")
+
+    decline_reasons = Counter(
+        t["decline_reason"] for t in trips
+        if t.get("review_state") == "declined" and t.get("decline_reason")
+    )
+    cancel_reasons = Counter(
+        t["cancellation_reason"] for t in trips
+        if t.get("review_state") in ("canceled", "arrived_canceled") and t.get("cancellation_reason")
+    )
+
+    # Avg turnaround: hours between intake_date and reviewed_at for reviewed trips
+    turnaround_hours = []
+    from datetime import datetime, timezone
+    for t in trips:
+        if t.get("intake_date") and t.get("reviewed_at") and t.get("review_state") not in ("pending", "returned"):
+            try:
+                intook = datetime.fromisoformat(t["intake_date"].replace("Z", "+00:00"))
+                reviewed = datetime.fromisoformat(t["reviewed_at"].replace("Z", "+00:00"))
+                diff = (reviewed - intook).total_seconds() / 3600
+                if 0 <= diff <= 720:  # cap at 30 days to ignore outliers
+                    turnaround_hours.append(diff)
+            except Exception:
+                pass
+
+    avg_turnaround_hours = round(sum(turnaround_hours) / len(turnaround_hours), 2) if turnaround_hours else 0
+
+    return {
+        "missing_info_rate": round((missing_count / total * 100), 1) if total else 0,
+        "missing_info_count": missing_count,
+        "return_rate": round((returned_count / total * 100), 1) if total else 0,
+        "returned_count": returned_count,
+        "avg_turnaround_hours": avg_turnaround_hours,
+        "decline_reasons": [{"reason": k, "count": v} for k, v in decline_reasons.most_common()],
+        "cancellation_reasons": [{"reason": k, "count": v} for k, v in cancel_reasons.most_common()],
+    }

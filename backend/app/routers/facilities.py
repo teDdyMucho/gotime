@@ -34,7 +34,7 @@ def create_facility(
     existing = db.table("facilities").select("id").ilike("name", body.name).execute()
     if existing.data:
         raise HTTPException(status_code=409, detail=f"Facility '{body.name}' already exists")
-    data = body.model_dump(exclude_none=True)
+    data = body.model_dump(mode='json', exclude_none=True)
     data["created_by"] = user["user_id"]
     data["updated_by"] = user["user_id"]
     result = db.table("facilities").insert(data).execute()
@@ -52,7 +52,7 @@ def update_facility(
     existing = db.table("facilities").select("*").eq("id", str(facility_id)).execute()
     if not existing.data:
         raise HTTPException(status_code=404, detail="Facility not found")
-    data = body.model_dump(exclude_none=True)
+    data = body.model_dump(mode='json', exclude_none=True)
     data["updated_by"] = user["user_id"]
     result = db.table("facilities").update(data).eq("id", str(facility_id)).execute()
     log_event("facility", str(facility_id), "update", user["user_id"],

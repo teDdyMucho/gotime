@@ -33,9 +33,7 @@ def create_requestor(
     user: dict = Depends(require_intake_or_above),
 ):
     db = get_supabase()
-    data = body.model_dump(exclude_none=True)
-    data["created_by"] = user["user_id"]
-    data["updated_by"] = user["user_id"]
+    data = body.model_dump(mode='json', exclude_none=True)
     result = db.table("requestors").insert(data).execute()
     log_event("requestor", result.data[0]["id"], "create", user["user_id"], new_value=result.data[0])
     return result.data[0]
@@ -51,8 +49,7 @@ def update_requestor(
     existing = db.table("requestors").select("*").eq("id", str(requestor_id)).execute()
     if not existing.data:
         raise HTTPException(status_code=404, detail="Requestor not found")
-    data = body.model_dump(exclude_none=True)
-    data["updated_by"] = user["user_id"]
+    data = body.model_dump(mode='json', exclude_none=True)
     result = db.table("requestors").update(data).eq("id", str(requestor_id)).execute()
     log_event("requestor", str(requestor_id), "update", user["user_id"],
               old_value=existing.data[0], new_value=result.data[0])
