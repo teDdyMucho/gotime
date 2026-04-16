@@ -29,6 +29,17 @@ const DECLINE_REASONS: { value: DeclineReason; label: string }[] = [
   { value: 'other',                     label: 'Other' },
 ]
 
+const CLARIFICATION_REASONS: { value: string; label: string }[] = [
+  { value: 'missing_auth',           label: 'Missing Authorization' },
+  { value: 'incomplete_info',        label: 'Incomplete Information' },
+  { value: 'wrong_address',          label: 'Incorrect Address / Location' },
+  { value: 'scheduling_conflict',    label: 'Scheduling Conflict' },
+  { value: 'pay_source_unclear',     label: 'Pay Source Unclear' },
+  { value: 'mobility_needs_unclear', label: 'Mobility Needs Unclear' },
+  { value: 'contact_unavailable',    label: 'Contact Unavailable' },
+  { value: 'other',                  label: 'Other' },
+]
+
 const CANCEL_REASONS: { value: CancellationReason; label: string }[] = [
   { value: 'facility_canceled',    label: 'Facility Canceled' },
   { value: 'requestor_canceled',   label: 'Requestor Canceled' },
@@ -86,8 +97,9 @@ export function TripDetail() {
   const [reviewDialog, setReviewDialog] = useState<'accept' | 'decline' | 'return' | null>(null)
   const [cancelDialog, setCancelDialog] = useState(false)
   const [notifyDialog, setNotifyDialog] = useState(false)
-  const [declineReason, setDeclineReason] = useState('')
-  const [cancelReason, setCancelReason]   = useState('')
+  const [declineReason, setDeclineReason]           = useState('')
+  const [clarificationReason, setClarificationReason] = useState('')
+  const [cancelReason, setCancelReason]               = useState('')
   const [notifyType, setNotifyType]       = useState('trip_decision')
   const [reviewNotes, setReviewNotes]     = useState('')
   const [actionError, setActionError]     = useState<string | null>(null)
@@ -120,10 +132,12 @@ export function TripDetail() {
         id,
         action: reviewDialog,
         ...(reviewDialog === 'decline' && declineReason ? { decline_reason: declineReason } : {}),
+        ...(reviewDialog === 'return' && clarificationReason ? { clarification_reason: clarificationReason } : {}),
         ...(reviewNotes ? { review_notes: reviewNotes } : {}),
       })
       setReviewDialog(null)
       setDeclineReason('')
+      setClarificationReason('')
       setReviewNotes('')
     } catch (err) { setActionError(err instanceof Error ? err.message : 'Action failed') }
   }
@@ -365,6 +379,15 @@ export function TripDetail() {
                 </Select>
               </div>
             )}
+            {reviewDialog === 'return' && (
+              <div className="space-y-1.5">
+                <Label>Clarification Reason *</Label>
+                <Select value={clarificationReason} onValueChange={setClarificationReason}>
+                  <SelectTrigger><SelectValue placeholder="Select reason…" /></SelectTrigger>
+                  <SelectContent>{CLARIFICATION_REASONS.map((r) => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="space-y-1.5">
               <Label>Review Notes (optional)</Label>
               <Textarea placeholder="Add notes…" value={reviewNotes} onChange={(e) => setReviewNotes(e.target.value)} rows={3} />
@@ -375,7 +398,11 @@ export function TripDetail() {
             <Button variant="outline" onClick={() => setReviewDialog(null)}>Cancel</Button>
             <Button
               onClick={handleReview}
-              disabled={reviewMutation.isPending || (reviewDialog === 'decline' && !declineReason)}
+              disabled={
+                reviewMutation.isPending ||
+                (reviewDialog === 'decline' && !declineReason) ||
+                (reviewDialog === 'return' && !clarificationReason)
+              }
               className={reviewDialog === 'accept' ? 'bg-green-600 hover:bg-green-700' : reviewDialog === 'decline' ? 'bg-red-600 hover:bg-red-700' : ''}
             >
               {reviewMutation.isPending ? 'Saving…' : 'Confirm'}
