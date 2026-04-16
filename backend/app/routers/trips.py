@@ -8,6 +8,7 @@ from app.core.security import require_intake_or_above, require_dispatcher_or_abo
 from app.db.supabase import get_supabase
 from app.services.audit_service import log_event
 from app.services.notification_service import trigger_trip_decision, trigger_trip_canceled
+from app.services.encryption import encrypt_record, decrypt_record, TRIP_PHI_FIELDS
 
 router = APIRouter(prefix="/trips", tags=["Trips"])
 
@@ -25,11 +26,12 @@ def create_trip(
     data["intake_staff_user_id"] = user["user_id"]
     data["intake_date"] = datetime.now(timezone.utc).isoformat()
     data["review_state"] = "pending"
+    data = encrypt_record(data, TRIP_PHI_FIELDS)
     result = db.table("trip_requests").insert(data).execute()
     log_event("trip_request", result.data[0]["id"], "create", user["user_id"],
               ip_address=request.client.host if request.client else None,
               new_value={"review_state": "pending"})
-    return result.data[0]
+    return decrypt_record(result.data[0], TRIP_PHI_FIELDS)
 
 
 @router.get("", response_model=list[TripResponse])
@@ -60,7 +62,7 @@ def list_trips(
     if trip_date:
         query = query.eq("trip_date", trip_date)
     result = query.order("trip_date").order("intake_date").range(offset, offset + page_size - 1).execute()
-    return result.data
+    return [decrypt_record(row, TRIP_PHI_FIELDS) for row in result.data]
 
 
 @router.get("/export")
@@ -85,7 +87,8 @@ def export_trips_csv(
         query = query.gte("trip_date", date_from)
     if date_to:
         query = query.lte("trip_date", date_to)
-    trips = query.order("trip_date").execute().data
+    raw_trips = query.order("trip_date").execute().data
+    trips = [decrypt_record(t, TRIP_PHI_FIELDS) for t in raw_trips]
 
     # Build lookup maps for human-readable names
     facilities   = {f["id"]: f["name"] for f in db.table("facilities").select("id,name").execute().data}
@@ -147,7 +150,7 @@ def get_trip(
     if not result.data:
         raise HTTPException(status_code=404, detail="Trip not found")
     log_event("trip_request", str(trip_id), "access", user["user_id"])
-    return result.data[0]
+    return decrypt_record(result.data[0], TRIP_PHI_FIELDS)
 
 
 @router.patch("/{trip_id}/review", response_model=TripResponse)

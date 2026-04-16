@@ -43,7 +43,9 @@
       "Bash(curl -s -X POST http://localhost:8000/api/requestors -H \"Authorization: Bearer fake\" -H \"Content-Type: application/json\" -d '{\"name\":\"test\",\"facility_id\":\"00000000-0000-0000-0000-000000000000\"}' -o /dev/null -w \"%{http_code}\")",
       "Bash(curl -s -X PATCH http://localhost:8000/api/clients/00000000-0000-0000-0000-000000000000 -H \"Authorization: Bearer fake\" -H \"Content-Type: application/json\" -d '{\"full_name\":\"test\"}' -o /dev/null -w \"%{http_code}\")",
       "Bash(curl -s http://localhost:8000/api/notifications -H \"Authorization: Bearer fake\" -o /dev/null -w \"%{http_code}\")",
-      "Bash(curl -s -X POST http://localhost:8000/api/trips -H \"Authorization: Bearer fake\" -H \"Content-Type: application/json\" -d '{}' -o /dev/null -w \"%{http_code}\")"
+      "Bash(curl -s -X POST http://localhost:8000/api/trips -H \"Authorization: Bearer fake\" -H \"Content-Type: application/json\" -d '{}' -o /dev/null -w \"%{http_code}\")",
+      "Bash(grep -n \"created_by\\\\|updated_by\" /c/Users/Ongoing/Desktop/gotime/gotime/backend/app/routers/*.py)",
+      "Bash(npx tsc *)"
     ]
   }
 }

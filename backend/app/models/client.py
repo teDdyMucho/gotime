@@ -9,6 +9,8 @@ MobilityLevel = Literal["ambulatory", "wheelchair", "stretcher", "other"]
 class ClientCreate(BaseModel):
     # PHI fields — encrypted at DB level
     full_name: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
     date_of_birth: Optional[date] = None
     phone: Optional[str] = None
     primary_address: Optional[str] = None
@@ -22,6 +24,8 @@ class ClientCreate(BaseModel):
 
 class ClientUpdate(BaseModel):
     full_name: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
     date_of_birth: Optional[date] = None
     phone: Optional[str] = None
     primary_address: Optional[str] = None
@@ -35,6 +39,8 @@ class ClientUpdate(BaseModel):
 class ClientResponse(BaseModel):
     id: UUID
     full_name: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
     date_of_birth: Optional[date] = None
     phone: Optional[str] = None
     primary_address: Optional[str] = None

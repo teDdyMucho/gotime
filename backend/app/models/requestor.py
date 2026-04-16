@@ -13,7 +13,7 @@ class RequestorCreate(BaseModel):
     phone: Optional[str] = None
     email: Optional[str] = None
     preferred_notification_method: NotificationMethod = "both"
-    facility_id: UUID
+    facility_id: Optional[UUID] = None
     status: RequestorStatus = "active"
     notes: Optional[str] = None
 
@@ -36,7 +36,7 @@ class RequestorResponse(BaseModel):
     phone: Optional[str] = None
     email: Optional[str] = None
     preferred_notification_method: NotificationMethod
-    facility_id: UUID
+    facility_id: Optional[UUID] = None
     status: RequestorStatus
     notes: Optional[str] = None
     created_at: datetime

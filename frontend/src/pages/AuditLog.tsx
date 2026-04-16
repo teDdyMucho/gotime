@@ -26,8 +26,8 @@ export function AuditLog() {
   const [search, setSearch] = useState('')
 
   const params: Record<string, string> = {
-    limit: String(PAGE_SIZE),
-    offset: String(page * PAGE_SIZE),
+    page: String(page + 1),
+    page_size: String(PAGE_SIZE),
   }
   if (entityType !== 'all') params.entity_type = entityType
 

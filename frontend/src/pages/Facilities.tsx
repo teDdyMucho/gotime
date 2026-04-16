@@ -3,9 +3,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { facilitiesApi, paySourcesApi } from '@/lib/api'
+import { facilitiesApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
-import type { Facility, PaySource } from '@/lib/types'
+import type { Facility } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -24,7 +24,6 @@ const schema = z.object({
   phone: z.string().optional(),
   email: z.string().email().optional().or(z.literal('')),
   status: z.enum(['active', 'inactive']),
-  default_pay_source_id: z.string().optional(),
   internal_notes: z.string().optional(),
   account_notes: z.string().optional(),
 })
@@ -41,11 +40,6 @@ export function Facilities() {
   const { data: facilities = [], isLoading } = useQuery<Facility[]>({
     queryKey: ['facilities'],
     queryFn: async () => (await facilitiesApi.list()).data,
-  })
-
-  const { data: paySources = [] } = useQuery<PaySource[]>({
-    queryKey: ['pay-sources'],
-    queryFn: async () => (await paySourcesApi.list()).data,
   })
 
   const createMutation = useMutation({
@@ -81,7 +75,6 @@ export function Facilities() {
       phone: f.phone,
       email: f.email ?? '',
       status: f.status,
-      default_pay_source_id: f.default_pay_source_id,
       internal_notes: f.internal_notes,
       account_notes: f.account_notes,
     })
@@ -128,6 +121,7 @@ export function Facilities() {
               <tr className="border-b border-gray-100 bg-gray-50">
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Name</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Type</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-600">Address</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Phone</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
                 {isAdmin && <th className="px-4 py-3" />}
@@ -138,6 +132,7 @@ export function Facilities() {
                 <tr key={f.id} className="border-b border-gray-50 hover:bg-gray-50">
                   <td className="px-4 py-3 font-medium text-gray-900">{f.name}</td>
                   <td className="px-4 py-3 text-gray-500 capitalize">{f.facility_type?.replace(/_/g, ' ') ?? '—'}</td>
+                  <td className="px-4 py-3 text-gray-500 max-w-[220px] truncate">{f.address ?? '—'}</td>
                   <td className="px-4 py-3 text-gray-500">{f.phone ?? '—'}</td>
                   <td className="px-4 py-3">
                     <Badge variant={f.status === 'active' ? 'accepted' : 'canceled'}>
@@ -212,20 +207,6 @@ export function Facilities() {
               <div className="col-span-2 space-y-1.5">
                 <Label>Address</Label>
                 <Input {...register('address')} />
-              </div>
-
-              <div className="col-span-2 space-y-1.5">
-                <Label>Default Pay Source</Label>
-                <Controller name="default_pay_source_id" control={control} render={({ field }) => (
-                  <Select value={field.value ?? ''} onValueChange={field.onChange}>
-                    <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
-                    <SelectContent>
-                      {paySources.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )} />
               </div>
 
               <div className="space-y-1.5">

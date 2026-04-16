@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Login } from '@/pages/Login'
+import { MfaSetup } from '@/pages/MfaSetup'
 import { IntakeForm } from '@/pages/IntakeForm'
 import { DispatcherQueue } from '@/pages/DispatcherQueue'
 import { TripDetail } from '@/pages/TripDetail'
@@ -11,6 +12,7 @@ import { Requestors } from '@/pages/Requestors'
 import { Clients } from '@/pages/Clients'
 import { AuditLog } from '@/pages/AuditLog'
 import { NotificationLog } from '@/pages/NotificationLog'
+import { PaySources } from '@/pages/PaySources'
 import type { Role } from '@/lib/types'
 
 function RequireAuth({ children, roles }: { children: React.ReactNode; roles?: Role[] }) {
@@ -35,6 +37,7 @@ export default function App() {
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/mfa-setup" element={<MfaSetup />} />
 
         <Route
           path="/"
@@ -64,6 +67,10 @@ export default function App() {
           <Route
             path="clients"
             element={<RequireAuth><Clients /></RequireAuth>}
+          />
+          <Route
+            path="pay-sources"
+            element={<RequireAuth><PaySources /></RequireAuth>}
           />
           <Route
             path="notifications"

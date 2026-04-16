@@ -1,13 +1,20 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { notificationsApi, requestorsApi, tripsApi } from '@/lib/api'
-import type { NotificationLog, Requestor, TripRequest } from '@/lib/types'
+import { notificationsApi, requestorsApi, tripsApi, clientsApi } from '@/lib/api'
+import type { NotificationLog, Requestor, TripRequest, Client } from '@/lib/types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { RefreshCw, Mail, MessageSquare, AtSign } from 'lucide-react'
 import { formatDateTime } from '@/lib/utils'
+
+/** PHI-safe: "John Doe" → "J. Doe" */
+function maskClientName(name: string) {
+  const parts = name.trim().split(/\s+/)
+  if (parts.length < 2) return name
+  return `${parts[0][0]}. ${parts.slice(1).join(' ')}`
+}
 
 function methodIcon(method: string) {
   if (method === 'sms') return <MessageSquare className="h-3.5 w-3.5 text-blue-500" />
@@ -50,8 +57,14 @@ export function NotificationLog() {
     queryFn: async () => (await tripsApi.list()).data,
   })
 
+  const { data: clients = [] } = useQuery<Client[]>({
+    queryKey: ['clients'],
+    queryFn: async () => (await clientsApi.list()).data,
+  })
+
   const requestorMap = Object.fromEntries(requestors.map((r) => [r.id, r]))
   const tripMap      = Object.fromEntries(trips.map((t) => [t.id, t]))
+  const clientMap    = Object.fromEntries(clients.map((c) => [c.id, c.full_name]))
 
   const filtered = logs.filter((n) => {
     if (typeFilter !== 'all' && n.notification_type !== typeFilter) return false
@@ -108,6 +121,7 @@ export function NotificationLog() {
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50 text-left">
                 <th className="px-4 py-3 font-medium text-gray-600">Sent At</th>
+                <th className="px-4 py-3 font-medium text-gray-600">Client</th>
                 <th className="px-4 py-3 font-medium text-gray-600">Trip</th>
                 <th className="px-4 py-3 font-medium text-gray-600">Recipient</th>
                 <th className="px-4 py-3 font-medium text-gray-600">Type</th>
@@ -119,17 +133,22 @@ export function NotificationLog() {
             <tbody>
               {!filtered.length ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-gray-400">
+                  <td colSpan={8} className="text-center py-12 text-gray-400">
                     No notifications found
                   </td>
                 </tr>
               ) : filtered.map((n) => {
                 const requestor = requestorMap[n.requestor_id]
                 const trip = tripMap[n.trip_id]
+                const rawClientName = trip ? clientMap[trip.client_id] : undefined
+                const maskedClient  = rawClientName ? maskClientName(rawClientName) : null
                 return (
                   <tr key={n.id} className="border-b border-gray-50 hover:bg-gray-50">
                     <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">
                       {formatDateTime(n.created_at)}
+                    </td>
+                    <td className="px-4 py-3 text-xs font-medium text-gray-700">
+                      {maskedClient ?? <span className="text-gray-400">—</span>}
                     </td>
                     <td className="px-4 py-3">
                       <button

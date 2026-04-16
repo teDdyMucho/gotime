@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { ArrowLeft, AlertTriangle, Bell, Phone, Mail, MapPin, Calendar, User, Building2, CreditCard } from 'lucide-react'
-import { formatDate, formatDateTime, formatCurrency } from '@/lib/utils'
+import { formatDate, formatDateTime, formatCurrency, formatTime } from '@/lib/utils'
 
 const DECLINE_REASONS: { value: DeclineReason; label: string }[] = [
   { value: 'outside_service_area',      label: 'Outside Service Area' },
@@ -288,16 +288,18 @@ export function TripDetail() {
       {/* Trip details grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-base">Trip Schedule</CardTitle></CardHeader>
+          <CardHeader className="pb-3"><CardTitle className="text-base">Trip Details</CardTitle></CardHeader>
           <CardContent>
             <dl className="grid grid-cols-2 gap-3">
               <Field label="Trip Date"      value={formatDate(trip.trip_date)} />
-              <Field label="Appt Time"      value={trip.appointment_time} />
-              <Field label="Pickup Time"    value={trip.requested_pickup_time} />
+              <Field label="Appt Time"      value={formatTime(trip.appointment_time)} />
+              <Field label="Pickup Time"    value={formatTime(trip.requested_pickup_time)} />
               <Field label="Trip Type"      value={trip.trip_type.replace(/_/g, ' ')} />
               <Field label="Appt Type"      value={trip.appointment_type} />
               <Field label="Intake Channel" value={trip.intake_channel} />
               <Field label="Will Call"      value={trip.will_call ? 'Yes' : undefined} />
+              <Field label="Escort Needed"  value={trip.escort_needed ? 'Yes' : undefined} />
+              <Field label="Return Time"    value={formatTime(trip.return_time)} />
               <Field label="Return Details" value={trip.return_details} />
             </dl>
           </CardContent>
@@ -307,10 +309,12 @@ export function TripDetail() {
           <CardHeader className="pb-3"><CardTitle className="text-base">Addresses</CardTitle></CardHeader>
           <CardContent>
             <dl className="space-y-3">
-              <Field label="Pickup Address"  value={trip.pickup_address} />
-              <Field label="Dropoff Address" value={trip.dropoff_address} />
-              <Field label="Mobility Level"  value={trip.mobility_level} />
-              <Field label="Special Notes"   value={trip.special_notes} />
+              <Field label="Pickup Address"      value={trip.pickup_address} />
+              <Field label="Drop-Off Location"   value={trip.dropoff_location_name} />
+              <Field label="Dropoff Address"     value={trip.dropoff_address} />
+              <Field label="Dropoff Notes"       value={trip.dropoff_notes} />
+              <Field label="Mobility Level"      value={trip.mobility_level} />
+              <Field label="Special Notes"       value={trip.special_notes} />
             </dl>
           </CardContent>
         </Card>
@@ -323,20 +327,19 @@ export function TripDetail() {
               <Field label="Expected Revenue" value={formatCurrency(trip.expected_revenue)} />
               <Field label="Final Revenue"    value={formatCurrency(trip.final_revenue)} />
               <Field label="Trip Order ID"    value={trip.trip_order_id} />
-              <Field label="Priority"         value={trip.priority_category} />
               <Field label="Billing Notes"    value={trip.billing_notes} />
             </dl>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-base">Intake Notes</CardTitle></CardHeader>
+          <CardHeader className="pb-3"><CardTitle className="text-base">Dispatch Notes</CardTitle></CardHeader>
           <CardContent>
             <dl className="space-y-3">
-              <Field label="Intake Notes"    value={trip.intake_notes} />
+              <Field label="Dispatch Notes"   value={trip.intake_notes} />
               <Field label="Internal Warning" value={trip.internal_warning} />
-              <Field label="Review Notes"    value={trip.review_notes} />
-              <Field label="Intake Date"     value={formatDate(trip.intake_date)} />
+              <Field label="Review Notes"     value={trip.review_notes} />
+              <Field label="Intake Date"      value={formatDate(trip.intake_date)} />
             </dl>
           </CardContent>
         </Card>

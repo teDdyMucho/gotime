@@ -9,6 +9,7 @@ import {
   ScrollText,
   Truck,
   Bell,
+  CreditCard,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
@@ -20,6 +21,7 @@ const navItems = [
   { to: '/facilities', label: 'Facilities', icon: Building2, roles: ['intake_staff', 'senior_dispatcher', 'admin'] },
   { to: '/requestors', label: 'Requestors', icon: Users, roles: ['intake_staff', 'senior_dispatcher', 'admin'] },
   { to: '/clients', label: 'Clients', icon: UserCircle, roles: ['intake_staff', 'senior_dispatcher', 'admin'] },
+  { to: '/pay-sources', label: 'Pay Sources', icon: CreditCard, roles: ['intake_staff', 'senior_dispatcher', 'admin'] },
   { to: '/notifications', label: 'Notifications', icon: Bell, roles: ['senior_dispatcher', 'admin'] },
   { to: '/audit', label: 'Audit Log', icon: ScrollText, roles: ['admin'] },
 ] as const
