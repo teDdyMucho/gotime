@@ -178,6 +178,7 @@ export interface QualityMetrics {
   missing_info_count: number
   return_rate: number
   returned_count: number
+  avg_turnaround_hours: number
 }
 
 // ---- Form types ----

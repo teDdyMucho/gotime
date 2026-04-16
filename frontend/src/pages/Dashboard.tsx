@@ -247,7 +247,15 @@ export function Dashboard() {
             <div className="h-px flex-1 bg-gray-200" />
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <StatCard
+              label="Avg Turnaround"
+              value={quality.avg_turnaround_hours < 1
+                ? `${Math.round(quality.avg_turnaround_hours * 60)}m`
+                : `${quality.avg_turnaround_hours}h`}
+              sub="target ≤ 2 hrs"
+              color={quality.avg_turnaround_hours > 2 ? 'text-red-600' : quality.avg_turnaround_hours > 1 ? 'text-amber-600' : 'text-green-600'}
+            />
             <StatCard
               label="Missing Info Rate"
               value={`${quality.missing_info_rate}%`}
