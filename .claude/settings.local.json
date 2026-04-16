@@ -45,7 +45,9 @@
       "Bash(curl -s http://localhost:8000/api/notifications -H \"Authorization: Bearer fake\" -o /dev/null -w \"%{http_code}\")",
       "Bash(curl -s -X POST http://localhost:8000/api/trips -H \"Authorization: Bearer fake\" -H \"Content-Type: application/json\" -d '{}' -o /dev/null -w \"%{http_code}\")",
       "Bash(grep -n \"created_by\\\\|updated_by\" /c/Users/Ongoing/Desktop/gotime/gotime/backend/app/routers/*.py)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(python3 -c \"from cryptography.fernet import Fernet; print\\(Fernet.generate_key\\(\\).decode\\(\\)\\)\")",
+      "Bash(py -c \"from cryptography.fernet import Fernet; print\\(Fernet.generate_key\\(\\).decode\\(\\)\\)\")"
     ]
   }
 }
