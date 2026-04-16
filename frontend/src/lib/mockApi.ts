@@ -87,10 +87,11 @@ export const clientsApi = {
 export const paySourcesApi = {
   list: (params?: Record<string, string>) => {
     let items = paySourcesStore.list()
-    if (params?.status) items = items.filter((p) => p.status === params.status)
+    if (params?.status && params.status !== 'all') items = items.filter((p) => p.status === params.status)
     return delay(items)
   },
   create: (data: unknown) => delay(paySourcesStore.create(data as Parameters<typeof paySourcesStore.create>[0])),
+  update: (id: string, data: unknown) => delay(paySourcesStore.update(id, data as Partial<Parameters<typeof paySourcesStore.create>[0]>)),
 }
 
 // ---- Trips ----

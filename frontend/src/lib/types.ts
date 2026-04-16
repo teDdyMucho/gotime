@@ -61,7 +61,7 @@ export interface Requestor {
   phone?: string
   email?: string
   preferred_notification_method: NotificationMethod
-  facility_id: string
+  facility_id?: string
   status: 'active' | 'inactive'
   notes?: string
   created_at: string
@@ -71,6 +71,8 @@ export interface Requestor {
 export interface Client {
   id: string
   full_name: string
+  first_name?: string
+  last_name?: string
   date_of_birth?: string
   phone?: string
   primary_address?: string
@@ -91,12 +93,14 @@ export interface TripRequest {
   intake_date: string
   intake_staff_user_id?: string
   requestor_id: string
-  facility_id: string
+  facility_id?: string
   callback_phone?: string
   reply_email?: string
   client_id: string
   pickup_address?: string
   dropoff_address?: string
+  dropoff_location_name?: string
+  dropoff_notes?: string
   mobility_level?: MobilityLevel
   escort_needed: boolean
   special_notes?: string
@@ -105,14 +109,15 @@ export interface TripRequest {
   requested_pickup_time?: string
   will_call: boolean
   trip_type: TripType
+  return_time?: string
   return_details?: string
+  trip_legs?: unknown[]
   urgency_level: UrgencyLevel
   appointment_type?: string
   pay_source_id?: string
   expected_revenue?: number
   trip_order_id?: string
   billing_notes?: string
-  priority_category?: string
   intake_notes?: string
   missing_info_flag: boolean
   internal_warning?: string

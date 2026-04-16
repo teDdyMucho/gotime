@@ -4,6 +4,7 @@ from app.models.client import ClientCreate, ClientUpdate, ClientResponse
 from app.core.security import require_intake_or_above
 from app.db.supabase import get_supabase
 from app.services.audit_service import log_event
+from app.services.encryption import encrypt_record, decrypt_record, CLIENT_PHI_FIELDS
 
 router = APIRouter(prefix="/clients", tags=["Clients"])
 
@@ -16,12 +17,16 @@ def list_clients(
 ):
     db = get_supabase()
     query = db.table("clients").select("*")
-    if search:
-        query = query.ilike("full_name", f"%{search}%")
+    # NOTE: When PHI encryption is active, full_name is stored encrypted so
+    # DB-level ILIKE won't work. We load all records and filter in Python instead.
     if facility_id:
         query = query.eq("primary_facility_id", facility_id)
     result = query.order("full_name").execute()
-    return result.data
+    decrypted = [decrypt_record(row, CLIENT_PHI_FIELDS) for row in result.data]
+    if search:
+        search_lower = search.lower()
+        decrypted = [r for r in decrypted if search_lower in (r.get("full_name") or "").lower()]
+    return decrypted
 
 
 @router.post("", response_model=ClientResponse, status_code=201)
@@ -33,9 +38,10 @@ def create_client(
     data = body.model_dump(mode='json', exclude_none=True)
     data["created_by"] = user["user_id"]
     data["updated_by"] = user["user_id"]
+    data = encrypt_record(data, CLIENT_PHI_FIELDS)
     result = db.table("clients").insert(data).execute()
     log_event("client", result.data[0]["id"], "create", user["user_id"])
-    return result.data[0]
+    return decrypt_record(result.data[0], CLIENT_PHI_FIELDS)
 
 
 @router.get("/{client_id}", response_model=ClientResponse)
@@ -48,7 +54,7 @@ def get_client(
     if not result.data:
         raise HTTPException(status_code=404, detail="Client not found")
     log_event("client", str(client_id), "access", user["user_id"])
-    return result.data[0]
+    return decrypt_record(result.data[0], CLIENT_PHI_FIELDS)
 
 
 @router.patch("/{client_id}", response_model=ClientResponse)
@@ -63,6 +69,7 @@ def update_client(
         raise HTTPException(status_code=404, detail="Client not found")
     data = body.model_dump(mode='json', exclude_none=True)
     data["updated_by"] = user["user_id"]
+    data = encrypt_record(data, CLIENT_PHI_FIELDS)
     result = db.table("clients").update(data).eq("id", str(client_id)).execute()
     log_event("client", str(client_id), "update", user["user_id"])
-    return result.data[0]
+    return decrypt_record(result.data[0], CLIENT_PHI_FIELDS)

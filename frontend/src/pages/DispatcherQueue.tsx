@@ -2,14 +2,14 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTrips } from '@/hooks/useTrips'
-import { facilitiesApi, requestorsApi, clientsApi, paySourcesApi } from '@/lib/api'
-import type { Facility, Requestor, Client, PaySource, ReviewState, UrgencyLevel } from '@/lib/types'
+import { facilitiesApi, clientsApi, paySourcesApi } from '@/lib/api'
+import type { Facility, Client, PaySource, ReviewState, UrgencyLevel } from '@/lib/types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { AlertTriangle, Search, Plus, RefreshCw, ArrowUpDown, Download } from 'lucide-react'
-import { formatDate } from '@/lib/utils'
+import { formatDate, formatTime } from '@/lib/utils'
 import api from '@/lib/api'
 
 const STATE_OPTIONS: { value: ReviewState | 'all'; label: string }[] = [
@@ -22,6 +22,10 @@ const STATE_OPTIONS: { value: ReviewState | 'all'; label: string }[] = [
   { value: 'completed',        label: 'Completed' },
   { value: 'arrived_canceled', label: 'Arrived/Canceled' },
 ]
+
+const INTAKE_CHANNEL_LABELS: Record<string, string> = {
+  phone: 'Phone', email: 'Email', fax: 'Fax', portal: 'Portal', internal: 'Internal',
+}
 
 function stateBadge(s: ReviewState) {
   const map: Record<ReviewState, string> = {
@@ -36,6 +40,7 @@ function urgencyBadge(u: UrgencyLevel) {
   return (u === 'emergency' ? 'emergency' : u === 'urgent' ? 'urgent' : 'standard') as Parameters<typeof Badge>[0]['variant']
 }
 
+
 type SortKey = 'trip_date' | 'urgency_level' | 'intake_date'
 
 const URGENCY_ORDER: Record<UrgencyLevel, number> = { emergency: 0, urgent: 1, standard: 2 }
@@ -48,6 +53,8 @@ export function DispatcherQueue() {
   const [missingOnly, setMissingOnly]       = useState(false)
   const [search, setSearch]                 = useState('')
   const [sortKey, setSortKey]               = useState<SortKey>('trip_date')
+  const [dateFrom, setDateFrom]             = useState('')
+  const [dateTo, setDateTo]                 = useState('')
 
   const params: Record<string, string> = {}
   if (stateFilter !== 'all')     params.review_state  = stateFilter
@@ -58,23 +65,25 @@ export function DispatcherQueue() {
   const { data: trips = [], isLoading, refetch } = useTrips(params)
 
   const { data: facilities  = [] } = useQuery<Facility[]>({ queryKey: ['facilities'],   queryFn: async () => (await facilitiesApi.list()).data })
-  const { data: requestors  = [] } = useQuery<Requestor[]>({ queryKey: ['requestors'],  queryFn: async () => (await requestorsApi.list()).data })
   const { data: clients     = [] } = useQuery<Client[]>({ queryKey: ['clients'],        queryFn: async () => (await clientsApi.list()).data })
   const { data: paySources  = [] } = useQuery<PaySource[]>({ queryKey: ['pay-sources'], queryFn: async () => (await paySourcesApi.list()).data })
 
-  const facilityMap   = Object.fromEntries(facilities.map((f) => [f.id, f.name]))
-  const requestorMap  = Object.fromEntries(requestors.map((r) => [r.id, r.name]))
+  const facilityMap   = Object.fromEntries(facilities.map((f) => [f.id, f]))
   const clientMap     = Object.fromEntries(clients.map((c) => [c.id, c.full_name]))
   const paySourceMap  = Object.fromEntries(paySources.map((p) => [p.id, p.name]))
 
   const filtered = trips
     .filter((t) => {
+      if (dateFrom && t.trip_date < dateFrom) return false
+      if (dateTo   && t.trip_date > dateTo)   return false
       if (!search) return true
       const q = search.toLowerCase()
+      const fac = t.facility_id ? facilityMap[t.facility_id] : null
       return (
-        clientMap[t.client_id]?.toLowerCase().includes(q) ||
-        facilityMap[t.facility_id]?.toLowerCase().includes(q) ||
-        requestorMap[t.requestor_id]?.toLowerCase().includes(q) ||
+        t.dropoff_location_name?.toLowerCase().includes(q) ||
+        fac?.name?.toLowerCase().includes(q) ||
+        t.pickup_address?.toLowerCase().includes(q) ||
+        t.intake_channel?.toLowerCase().includes(q) ||
         t.trip_order_id?.toLowerCase().includes(q) ||
         t.appointment_type?.toLowerCase().includes(q) ||
         t.id.toLowerCase().includes(q)
@@ -130,10 +139,29 @@ export function DispatcherQueue() {
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
-            placeholder="Search client, facility, requestor…"
+            placeholder="Search facility, drop-off, appt type…"
             className="pl-9"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        {/* Date range */}
+        <div className="flex items-center gap-1">
+          <Input
+            type="date"
+            className="w-36 text-sm"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            title="Trip date from"
+          />
+          <span className="text-gray-400 text-sm">–</span>
+          <Input
+            type="date"
+            className="w-36 text-sm"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            title="Trip date to"
           />
         </div>
 
@@ -195,58 +223,84 @@ export function DispatcherQueue() {
         </div>
       ) : (
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50 text-left">
-                <th className="px-4 py-3 font-medium text-gray-600">Trip Date</th>
-                <th className="px-4 py-3 font-medium text-gray-600">Client</th>
-                <th className="px-4 py-3 font-medium text-gray-600">Facility</th>
-                <th className="px-4 py-3 font-medium text-gray-600">Requestor</th>
-                <th className="px-4 py-3 font-medium text-gray-600">Pay Source</th>
-                <th className="px-4 py-3 font-medium text-gray-600">Urgency</th>
-                <th className="px-4 py-3 font-medium text-gray-600">Appt Type</th>
-                <th className="px-4 py-3 font-medium text-gray-600">Flag</th>
-                <th className="px-4 py-3 font-medium text-gray-600">State</th>
-                <th className="px-4 py-3 font-medium text-gray-600">Submitted</th>
-              </tr>
-            </thead>
-            <tbody>
-              {!filtered.length ? (
-                <tr><td colSpan={10} className="text-center py-12 text-gray-400">No trips found</td></tr>
-              ) : filtered.map((trip) => (
-                <tr
-                  key={trip.id}
-                  className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors"
-                  onClick={() => navigate(`/trips/${trip.id}`)}
-                >
-                  <td className="px-4 py-3 font-medium whitespace-nowrap">{formatDate(trip.trip_date)}</td>
-                  <td className="px-4 py-3 font-medium text-gray-900">{clientMap[trip.client_id] ?? '—'}</td>
-                  <td className="px-4 py-3 text-gray-600 max-w-[160px] truncate">{facilityMap[trip.facility_id] ?? '—'}</td>
-                  <td className="px-4 py-3 text-gray-600">{requestorMap[trip.requestor_id] ?? '—'}</td>
-                  <td className="px-4 py-3 text-gray-500 text-xs">{trip.pay_source_id ? (paySourceMap[trip.pay_source_id] ?? '—') : '—'}</td>
-                  <td className="px-4 py-3">
-                    <Badge variant={urgencyBadge(trip.urgency_level)} className="capitalize">
-                      {trip.urgency_level}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3 text-gray-600 max-w-[120px] truncate">{trip.appointment_type ?? '—'}</td>
-                  <td className="px-4 py-3">
-                    {trip.missing_info_flag && (
-                      <span title="Missing info">
-                        <AlertTriangle className="h-4 w-4 text-amber-500" aria-hidden />
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge variant={stateBadge(trip.review_state)} className="capitalize whitespace-nowrap">
-                      {trip.review_state.replace(/_/g, ' ')}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">{formatDate(trip.intake_date)}</td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50 text-left">
+                  <th className="px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Trip Date</th>
+                  <th className="px-4 py-3 font-medium text-gray-600">Client</th>
+                  <th className="px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Pick-up Location</th>
+                  <th className="px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Drop-Off Location</th>
+                  <th className="px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Appt Time</th>
+                  <th className="px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Intake Channel</th>
+                  <th className="px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Pay Source</th>
+                  <th className="px-4 py-3 font-medium text-gray-600">Urgency</th>
+                  <th className="px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Appt Type</th>
+                  <th className="px-4 py-3 font-medium text-gray-600">Flag</th>
+                  <th className="px-4 py-3 font-medium text-gray-600">State</th>
+                  <th className="px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Submitted</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {!filtered.length ? (
+                  <tr><td colSpan={12} className="text-center py-12 text-gray-400">No trips found</td></tr>
+                ) : filtered.map((trip) => {
+                  const fac = trip.facility_id ? facilityMap[trip.facility_id] : null
+                  const pickupName    = fac?.name ?? null
+                  const pickupAddr    = fac?.address ?? trip.pickup_address ?? null
+                  const dropoffName   = trip.dropoff_location_name ?? null
+                  const dropoffAddr   = trip.dropoff_address ?? null
+
+                  return (
+                    <tr
+                      key={trip.id}
+                      className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => navigate(`/trips/${trip.id}`)}
+                    >
+                      <td className="px-4 py-3 font-medium whitespace-nowrap">{formatDate(trip.trip_date)}</td>
+                      <td className="px-4 py-3 font-medium text-gray-900 max-w-[140px] truncate">{clientMap[trip.client_id] ?? '—'}</td>
+                      <td className="px-4 py-3 max-w-[180px]">
+                        {pickupName
+                          ? <><div className="font-medium text-gray-900 truncate">{pickupName}</div>
+                              {pickupAddr && <div className="text-xs text-gray-400 truncate">{pickupAddr}</div>}</>
+                          : <span className="text-gray-500 text-xs">{pickupAddr ?? '—'}</span>
+                        }
+                      </td>
+                      <td className="px-4 py-3 max-w-[180px]">
+                        {dropoffName
+                          ? <><div className="font-medium text-gray-900 truncate">{dropoffName}</div>
+                              {dropoffAddr && <div className="text-xs text-gray-400 truncate">{dropoffAddr}</div>}</>
+                          : <span className="text-gray-500 text-xs">{dropoffAddr ?? '—'}</span>
+                        }
+                      </td>
+                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{formatTime(trip.appointment_time) ?? '—'}</td>
+                      <td className="px-4 py-3 text-gray-600 capitalize">{INTAKE_CHANNEL_LABELS[trip.intake_channel] ?? trip.intake_channel}</td>
+                      <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{trip.pay_source_id ? (paySourceMap[trip.pay_source_id] ?? '—') : '—'}</td>
+                      <td className="px-4 py-3">
+                        <Badge variant={urgencyBadge(trip.urgency_level)} className="capitalize">
+                          {trip.urgency_level}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 text-gray-600 max-w-[120px] truncate">{trip.appointment_type ?? '—'}</td>
+                      <td className="px-4 py-3">
+                        {trip.missing_info_flag && (
+                          <span title="Missing info">
+                            <AlertTriangle className="h-4 w-4 text-amber-500" aria-hidden />
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge variant={stateBadge(trip.review_state)} className="capitalize whitespace-nowrap">
+                          {trip.review_state.replace(/_/g, ' ')}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">{formatDate(trip.intake_date)}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
           <div className="px-4 py-2 border-t border-gray-100 bg-gray-50 text-xs text-gray-400">
             {filtered.length} trip{filtered.length !== 1 ? 's' : ''} shown
           </div>

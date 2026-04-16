@@ -31,13 +31,15 @@ class TripCreate(BaseModel):
     # Intake section
     intake_channel: IntakeChannel
     requestor_id: UUID
-    facility_id: UUID
+    facility_id: Optional[UUID] = None        # Nullable — N/A for walk-in / no-facility
     callback_phone: Optional[str] = None
     reply_email: Optional[str] = None
     # Client section
     client_id: UUID
-    pickup_address: Optional[str] = None      # PHI
+    pickup_address: Optional[str] = None      # PHI — auto-filled from facility
     dropoff_address: Optional[str] = None     # PHI
+    dropoff_location_name: Optional[str] = None  # e.g. "Mass General Hospital"
+    dropoff_notes: Optional[str] = None       # Floor/suite/dept
     mobility_level: Optional[MobilityLevel] = None
     escort_needed: bool = False
     special_notes: Optional[str] = None       # PHI
@@ -47,7 +49,9 @@ class TripCreate(BaseModel):
     requested_pickup_time: Optional[time] = None
     will_call: bool = False
     trip_type: TripType = "one_way"
-    return_details: Optional[str] = None
+    return_time: Optional[str] = None         # Return pickup time for round trips
+    return_details: Optional[str] = None      # Legacy — kept for backward compat
+    trip_legs: Optional[list] = None          # Additional legs for multi-trip (JSON)
     urgency_level: UrgencyLevel = "standard"
     appointment_type: Optional[str] = None    # PHI
     # Financial section
@@ -55,9 +59,8 @@ class TripCreate(BaseModel):
     expected_revenue: Optional[Decimal] = None
     trip_order_id: Optional[str] = None
     billing_notes: Optional[str] = None
-    priority_category: Optional[str] = None
     # Quality section
-    intake_notes: Optional[str] = None
+    intake_notes: Optional[str] = None        # Shown as "Dispatch Notes" in UI
     missing_info_flag: bool = False
     internal_warning: Optional[str] = None
 
@@ -81,12 +84,14 @@ class TripResponse(BaseModel):
     intake_date: datetime
     intake_staff_user_id: Optional[UUID] = None
     requestor_id: UUID
-    facility_id: UUID
+    facility_id: Optional[UUID] = None
     callback_phone: Optional[str] = None
     reply_email: Optional[str] = None
     client_id: UUID
     pickup_address: Optional[str] = None
     dropoff_address: Optional[str] = None
+    dropoff_location_name: Optional[str] = None
+    dropoff_notes: Optional[str] = None
     mobility_level: Optional[MobilityLevel] = None
     escort_needed: bool
     special_notes: Optional[str] = None
@@ -95,7 +100,9 @@ class TripResponse(BaseModel):
     requested_pickup_time: Optional[time] = None
     will_call: bool
     trip_type: TripType
+    return_time: Optional[str] = None
     return_details: Optional[str] = None
+    trip_legs: Optional[list] = None
     urgency_level: UrgencyLevel
     appointment_type: Optional[str] = None
     pay_source_id: Optional[UUID] = None

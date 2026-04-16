@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
-from app.routers import facilities, requestors, clients, pay_sources, trips, metrics, audit, notifications
+from app.routers import facilities, requestors, clients, pay_sources, trips, metrics, audit, notifications, webhooks
 from app.routers.notifications import log_router as notifications_log_router
 
 settings = get_settings()
@@ -31,6 +31,7 @@ app.include_router(notifications.router, prefix="/api")
 app.include_router(notifications_log_router, prefix="/api")
 app.include_router(metrics.router, prefix="/api")
 app.include_router(audit.router, prefix="/api")
+app.include_router(webhooks.router, prefix="/api")
 
 
 @app.get("/health")

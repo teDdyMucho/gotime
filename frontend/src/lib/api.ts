@@ -65,6 +65,7 @@ const realClientsApi = {
 const realPaySourcesApi = {
   list: (params?: Record<string, string>) => api.get('/pay-sources', { params }),
   create: (data: unknown) => api.post('/pay-sources', data),
+  update: (id: string, data: unknown) => api.patch(`/pay-sources/${id}`, data),
 }
 
 const realTripsApi = {
