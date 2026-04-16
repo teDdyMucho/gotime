@@ -104,6 +104,7 @@ export function TripDetail() {
   const [reviewNotes, setReviewNotes]     = useState('')
   const [actionError, setActionError]     = useState<string | null>(null)
   const [notifySent, setNotifySent]       = useState(false)
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null)
 
   // Resolve related entities
   const { data: facilities = [] } = useQuery<Facility[]>({ queryKey: ['facilities'],   queryFn: async () => (await facilitiesApi.list()).data })
@@ -135,10 +136,13 @@ export function TripDetail() {
         ...(reviewDialog === 'return' && clarificationReason ? { clarification_reason: clarificationReason } : {}),
         ...(reviewNotes ? { review_notes: reviewNotes } : {}),
       })
+      const label = reviewDialog === 'accept' ? 'Trip accepted' : reviewDialog === 'decline' ? 'Trip declined' : 'Returned for clarification'
       setReviewDialog(null)
       setDeclineReason('')
       setClarificationReason('')
       setReviewNotes('')
+      setActionSuccess(label)
+      setTimeout(() => setActionSuccess(null), 3000)
     } catch (err) { setActionError(err instanceof Error ? err.message : 'Action failed') }
   }
 
@@ -148,6 +152,8 @@ export function TripDetail() {
     try {
       await cancelMutation.mutateAsync({ id, cancellation_reason: cancelReason, ...(reviewNotes ? { review_notes: reviewNotes } : {}) })
       setCancelDialog(false); setCancelReason(''); setReviewNotes('')
+      setActionSuccess('Trip canceled')
+      setTimeout(() => setActionSuccess(null), 3000)
     } catch (err) { setActionError(err instanceof Error ? err.message : 'Cancel failed') }
   }
 
@@ -158,8 +164,35 @@ export function TripDetail() {
     setTimeout(() => { setNotifyDialog(false); setNotifySent(false) }, 1500)
   }
 
+  const isProcessing = reviewMutation.isPending || cancelMutation.isPending
+
   return (
     <div className="space-y-5 max-w-5xl">
+
+      {/* Full-screen processing overlay */}
+      {isProcessing && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl px-10 py-8 flex flex-col items-center gap-4 min-w-[220px]">
+            <div className="animate-spin rounded-full h-10 w-10 border-4 border-brand-200 border-t-brand-600" />
+            <p className="text-sm font-medium text-gray-700">
+              {reviewMutation.isPending
+                ? reviewDialog === 'accept' ? 'Accepting trip…'
+                : reviewDialog === 'decline' ? 'Declining trip…'
+                : 'Returning for clarification…'
+                : 'Canceling trip…'}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Success toast */}
+      {actionSuccess && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white text-sm font-medium px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+          {actionSuccess}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-3 flex-wrap">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
