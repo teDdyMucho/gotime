@@ -155,7 +155,7 @@ export function Requestors() {
                     <p className="font-medium text-gray-900">{r.name}</p>
                     {r.title_department && <p className="text-xs text-gray-400">{r.title_department}</p>}
                   </td>
-                  <td className="px-4 py-3 text-gray-500">{facilityMap[r.facility_id] ?? '—'}</td>
+                  <td className="px-4 py-3 text-gray-500">{(r.facility_id ? facilityMap[r.facility_id] : undefined) ?? '—'}</td>
                   <td className="px-4 py-3 text-gray-500">{r.phone ?? '—'}</td>
                   <td className="px-4 py-3 text-gray-500 capitalize">{r.preferred_notification_method}</td>
                   <td className="px-4 py-3">
