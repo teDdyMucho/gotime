@@ -28,7 +28,15 @@ export function MfaSetup() {
       friendlyName: 'GoTime Admin',
     })
     setLoading(false)
-    if (error || !data) { setError(error?.message ?? 'Failed to start enrollment'); return }
+    if (error || !data) {
+      // TOTP disabled on Supabase — skip MFA setup entirely
+      if (error?.message?.toLowerCase().includes('disabled')) {
+        navigate('/queue')
+        return
+      }
+      setError(error?.message ?? 'Failed to start enrollment')
+      return
+    }
     setQrCode(data.totp.qr_code)
     setSecret(data.totp.secret)
     setFactorId(data.id)
