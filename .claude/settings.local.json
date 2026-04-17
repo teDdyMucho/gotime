@@ -47,7 +47,13 @@
       "Bash(grep -n \"created_by\\\\|updated_by\" /c/Users/Ongoing/Desktop/gotime/gotime/backend/app/routers/*.py)",
       "Bash(npx tsc *)",
       "Bash(python3 -c \"from cryptography.fernet import Fernet; print\\(Fernet.generate_key\\(\\).decode\\(\\)\\)\")",
-      "Bash(py -c \"from cryptography.fernet import Fernet; print\\(Fernet.generate_key\\(\\).decode\\(\\)\\)\")"
+      "Bash(py -c \"from cryptography.fernet import Fernet; print\\(Fernet.generate_key\\(\\).decode\\(\\)\\)\")",
+      "Bash(git -C \"c:/Users/Admin/Desktop/gotime/gotime\" log --oneline -10)",
+      "Read(//c/Users/Admin/Desktop/gotime/**)",
+      "Read(//c/Users/Admin/Desktop/**)",
+      "Bash(cmd /c \"dir C:\\\\Users\\\\Admin\\\\Desktop\\\\gotime /b 2>&1\")",
+      "Bash(cmd /c \"dir C:\\\\Users\\\\Admin\\\\Desktop\\\\gotime /b\")",
+      "Bash(echo \"exit: $?\")"
     ]
   }
 }

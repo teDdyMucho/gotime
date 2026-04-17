@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Truck, ShieldCheck, Loader2 } from 'lucide-react'
-import { signIn, enableDevBypassAuth, isSupabaseConfigured, supabase } from '@/lib/auth'
+import { signIn, supabase } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -42,17 +42,10 @@ export function Login() {
       const { data: factors } = await supabase.auth.mfa.listFactors()
       const hasEnrolled = factors?.totp?.some(f => f.status === 'verified') ?? false
 
-      // If admin has no MFA enrolled yet — force enrollment
-      const { data: { user: sbUser } } = await supabase.auth.getUser()
-      const role = sbUser?.user_metadata?.role
-      if (!hasEnrolled && role === 'admin') {
-        navigate('/mfa-setup')
-        return
-      }
-
       const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
-      if (aal?.nextLevel === 'aal2' && aal.nextLevel !== aal.currentLevel) {
-        // User has MFA enrolled — need to verify
+
+      // If user has MFA enrolled and Supabase requires aal2 — challenge them
+      if (hasEnrolled && aal?.nextLevel === 'aal2' && aal.nextLevel !== aal.currentLevel) {
         const totp = factors?.totp?.[0]
         if (totp) {
           setMfaFactorId(totp.id)
@@ -60,6 +53,16 @@ export function Login() {
           return
         }
       }
+
+      // If admin has enrolled MFA and aal2 is current — go to queue
+      // If TOTP is disabled on Supabase or no factor enrolled — skip MFA entirely
+      const { data: { user: sbUser } } = await supabase.auth.getUser()
+      const role = sbUser?.user_metadata?.role
+      if (!hasEnrolled && role === 'admin' && aal?.nextLevel === 'aal2') {
+        navigate('/mfa-setup')
+        return
+      }
+
       navigate('/queue')
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Sign-in failed')
@@ -141,16 +144,7 @@ export function Login() {
                     {isSubmitting ? 'Signing in…' : 'Sign in'}
                   </Button>
 
-                  {!isSupabaseConfigured && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => { enableDevBypassAuth(); navigate('/queue') }}
-                    >
-                      Continue with local UI (no Supabase)
-                    </Button>
-                  )}
+
                 </form>
               </CardContent>
             </>
