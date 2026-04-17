@@ -53,7 +53,8 @@
       "Read(//c/Users/Admin/Desktop/**)",
       "Bash(cmd /c \"dir C:\\\\Users\\\\Admin\\\\Desktop\\\\gotime /b 2>&1\")",
       "Bash(cmd /c \"dir C:\\\\Users\\\\Admin\\\\Desktop\\\\gotime /b\")",
-      "Bash(echo \"exit: $?\")"
+      "Bash(echo \"exit: $?\")",
+      "Bash(git push *)"
     ]
   }
 }
