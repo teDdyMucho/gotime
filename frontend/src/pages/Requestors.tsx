@@ -125,9 +125,15 @@ export function Requestors() {
   const facilityMap = Object.fromEntries(facilities.map((f) => [f.id, f.name]))
   const canEdit = user?.role === 'senior_dispatcher' || user?.role === 'admin'
 
-  const filtered = facilityFilter === 'all'
+  const [activeTab, setActiveTab] = useState<'no_trips' | 'has_trips'>('no_trips')
+
+  const byFacility = facilityFilter === 'all'
     ? requestors
     : requestors.filter((r) => r.facility_id === facilityFilter)
+
+  const filtered = byFacility.filter((r) =>
+    activeTab === 'no_trips' ? !r.has_trips : r.has_trips
+  )
 
   return (
     <div className="space-y-4">
@@ -150,6 +156,35 @@ export function Requestors() {
           ))}
         </SelectContent>
       </Select>
+
+      <div className="flex gap-1 border-b border-gray-200">
+        <button
+          onClick={() => setActiveTab('no_trips')}
+          className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+            activeTab === 'no_trips'
+              ? 'border-brand-600 text-brand-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          No Trips
+          <span className="ml-1.5 text-xs bg-gray-100 text-gray-600 rounded-full px-1.5 py-0.5">
+            {byFacility.filter((r) => !r.has_trips).length}
+          </span>
+        </button>
+        <button
+          onClick={() => setActiveTab('has_trips')}
+          className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+            activeTab === 'has_trips'
+              ? 'border-brand-600 text-brand-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Has Trips
+          <span className="ml-1.5 text-xs bg-gray-100 text-gray-600 rounded-full px-1.5 py-0.5">
+            {byFacility.filter((r) => r.has_trips).length}
+          </span>
+        </button>
+      </div>
 
       {isLoading ? (
         <div className="flex justify-center py-16">
@@ -188,7 +223,7 @@ export function Requestors() {
                       <Button variant="ghost" size="sm" onClick={() => openEdit(r)}>
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
-                      {!r.has_trips && (
+                      {activeTab === 'no_trips' && (
                         <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => setDeleteTarget(r)}>
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
