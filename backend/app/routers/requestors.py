@@ -24,7 +24,12 @@ def list_requestors(
     if search:
         query = query.ilike("name", f"%{search}%")
     result = query.order("name").execute()
-    return result.data
+    if not result.data:
+        return []
+    requestor_ids = [r["id"] for r in result.data]
+    trips_result = db.table("trip_requests").select("requestor_id").in_("requestor_id", requestor_ids).execute()
+    ids_with_trips = {t["requestor_id"] for t in (trips_result.data or [])}
+    return [{**r, "has_trips": r["id"] in ids_with_trips} for r in result.data]
 
 
 @router.post("", response_model=RequestorResponse, status_code=201)
@@ -65,5 +70,10 @@ def delete_requestor(
     existing = db.table("requestors").select("id").eq("id", str(requestor_id)).execute()
     if not existing.data:
         raise HTTPException(status_code=404, detail="Requestor not found")
-    db.table("requestors").delete().eq("id", str(requestor_id)).execute()
+    try:
+        db.table("requestors").delete().eq("id", str(requestor_id)).execute()
+    except Exception as e:
+        if "foreign key" in str(e).lower() or "23503" in str(e):
+            raise HTTPException(status_code=409, detail="Cannot delete — this requestor has linked trips. Remove them first.")
+        raise HTTPException(status_code=500, detail=str(e))
     log_event("requestor", str(requestor_id), "delete", user["user_id"])

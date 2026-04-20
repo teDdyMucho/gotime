@@ -69,5 +69,10 @@ def delete_facility(
     existing = db.table("facilities").select("id").eq("id", str(facility_id)).execute()
     if not existing.data:
         raise HTTPException(status_code=404, detail="Facility not found")
-    db.table("facilities").delete().eq("id", str(facility_id)).execute()
+    try:
+        db.table("facilities").delete().eq("id", str(facility_id)).execute()
+    except Exception as e:
+        if "foreign key" in str(e).lower() or "23503" in str(e):
+            raise HTTPException(status_code=409, detail="Cannot delete — this facility has linked requestors or trips. Remove them first.")
+        raise HTTPException(status_code=500, detail=str(e))
     log_event("facility", str(facility_id), "delete", user["user_id"])

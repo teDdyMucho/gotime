@@ -118,6 +118,7 @@ export function TripDetail() {
   const [actionError, setActionError]     = useState<string | null>(null)
   const [notifySent, setNotifySent]       = useState(false)
   const [actionSuccess, setActionSuccess] = useState<string | null>(null)
+  const [processingLabel, setProcessingLabel] = useState<string | null>(null)
 
   // Resolve related entities
   const { data: facilities = [] } = useQuery<Facility[]>({ queryKey: ['facilities'],   queryFn: async () => (await facilitiesApi.list()).data })
@@ -141,6 +142,9 @@ export function TripDetail() {
   async function handleReview() {
     if (!reviewDialog || !id) return
     setActionError(null)
+    const label = reviewDialog === 'accept' ? 'Accepting trip…' : reviewDialog === 'decline' ? 'Declining trip…' : 'Returning for clarification…'
+    setProcessingLabel(label)
+    setReviewDialog(null)
     try {
       await reviewMutation.mutateAsync({
         id,
@@ -149,39 +153,60 @@ export function TripDetail() {
         ...(reviewDialog === 'return' && clarificationReason ? { clarification_reason: clarificationReason } : {}),
         ...(reviewNotes ? { review_notes: reviewNotes } : {}),
       })
-      const label = reviewDialog === 'accept' ? 'Trip accepted' : reviewDialog === 'decline' ? 'Trip declined' : 'Returned for clarification'
-      setReviewDialog(null)
       setDeclineReason('')
       setClarificationReason('')
       setReviewNotes('')
       reviewMutation.reset()
-      setActionSuccess(label)
+      setActionSuccess(
+        reviewDialog === 'accept' ? 'Trip accepted' :
+        reviewDialog === 'decline' ? 'Trip declined' : 'Returned for clarification'
+      )
       setTimeout(() => setActionSuccess(null), 3000)
-    } catch (err) { setActionError(err instanceof Error ? err.message : 'Action failed') }
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Action failed')
+      setReviewDialog(reviewDialog)
+    } finally {
+      setProcessingLabel(null)
+    }
   }
 
   async function handleCancel() {
     if (!cancelReason || !id) return
     setActionError(null)
+    setProcessingLabel('Canceling trip…')
+    setCancelDialog(false)
     try {
       await cancelMutation.mutateAsync({ id, cancellation_reason: cancelReason, ...(reviewNotes ? { review_notes: reviewNotes } : {}) })
-      setCancelDialog(false); setCancelReason(''); setReviewNotes('')
+      setCancelReason(''); setReviewNotes('')
       cancelMutation.reset()
       setActionSuccess('Trip canceled')
       setTimeout(() => setActionSuccess(null), 3000)
-    } catch (err) { setActionError(err instanceof Error ? err.message : 'Cancel failed') }
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Cancel failed')
+      setCancelDialog(true)
+    } finally {
+      setProcessingLabel(null)
+    }
   }
 
   async function handleNotify() {
     if (!id) return
-    await tripsApi.notify(id, { message_type: notifyType })
-    setNotifySent(true)
-    setTimeout(() => { setNotifyDialog(false); setNotifySent(false) }, 1500)
+    setNotifyDialog(false)
+    setProcessingLabel('Sending notification…')
+    try {
+      await tripsApi.notify(id, { message_type: notifyType })
+      setActionSuccess('Notification sent!')
+      setTimeout(() => setActionSuccess(null), 3000)
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to send notification')
+      setNotifyDialog(true)
+    } finally {
+      setProcessingLabel(null)
+      setNotifySent(false)
+    }
   }
 
-  const isProcessing =
-    (reviewMutation.isPending && reviewDialog !== null) ||
-    (cancelMutation.isPending && cancelDialog)
+  const isProcessing = processingLabel !== null
 
   return (
     <div className="space-y-5 max-w-5xl">
@@ -191,13 +216,7 @@ export function TripDetail() {
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-2xl px-10 py-8 flex flex-col items-center gap-4 min-w-[220px]">
             <div className="animate-spin rounded-full h-10 w-10 border-4 border-brand-200 border-t-brand-600" />
-            <p className="text-sm font-medium text-gray-700">
-              {reviewMutation.isPending
-                ? reviewDialog === 'accept' ? 'Accepting trip…'
-                : reviewDialog === 'decline' ? 'Declining trip…'
-                : 'Returning for clarification…'
-                : 'Canceling trip…'}
-            </p>
+            <p className="text-sm font-medium text-gray-700">{processingLabel}</p>
           </div>
         </div>
       )}

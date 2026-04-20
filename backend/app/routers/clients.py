@@ -84,5 +84,10 @@ def delete_client(
     existing = db.table("clients").select("id").eq("id", str(client_id)).execute()
     if not existing.data:
         raise HTTPException(status_code=404, detail="Client not found")
-    db.table("clients").delete().eq("id", str(client_id)).execute()
+    try:
+        db.table("clients").delete().eq("id", str(client_id)).execute()
+    except Exception as e:
+        if "foreign key" in str(e).lower() or "23503" in str(e):
+            raise HTTPException(status_code=409, detail="Cannot delete — this client has linked trips. Remove them first.")
+        raise HTTPException(status_code=500, detail=str(e))
     log_event("client", str(client_id), "delete", user["user_id"])

@@ -70,7 +70,10 @@ export function Facilities() {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => facilitiesApi.delete(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['facilities'] }); setDeleteTarget(null) },
-    onError: (err: unknown) => setApiError(err instanceof Error ? err.message : 'Error deleting'),
+    onError: (err: unknown) => {
+      const detail = (err as any)?.response?.data?.detail
+      setApiError(detail ?? (err instanceof Error ? err.message : 'Error deleting'))
+    },
   })
 
   const { register, handleSubmit, control, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
@@ -255,17 +258,33 @@ export function Facilities() {
       </Dialog>
 
       {/* Delete confirm */}
-      <Dialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+      <Dialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) { setDeleteTarget(null); setApiError(null) } }}>
         <DialogContent className="max-w-sm" aria-describedby={undefined}>
-          <DialogHeader><DialogTitle>Delete Facility</DialogTitle></DialogHeader>
-          <p className="text-sm text-gray-600">Are you sure you want to delete <strong>{deleteTarget?.name}</strong>? This cannot be undone.</p>
-          {apiError && <p className="text-sm text-red-500">{apiError}</p>}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
-            <Button variant="destructive" onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)} disabled={deleteMutation.isPending}>
-              {deleteMutation.isPending ? 'Deleting…' : 'Delete'}
-            </Button>
-          </DialogFooter>
+          <DialogHeader>
+            <DialogTitle>{apiError ? 'Cannot Delete Facility' : 'Delete Facility'}</DialogTitle>
+          </DialogHeader>
+          {apiError ? (
+            <div className="space-y-3">
+              <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 space-y-2">
+                <p className="font-semibold">⚠ {deleteTarget?.name} cannot be deleted</p>
+                <p>{apiError}</p>
+                <p className="text-xs text-amber-600">To delete this facility, first reassign or remove all linked requestors and trips.</p>
+              </div>
+              <DialogFooter>
+                <Button className="w-full" onClick={() => { setDeleteTarget(null); setApiError(null) }}>Got it</Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            <>
+              <p className="text-sm text-gray-600">Are you sure you want to delete <strong>{deleteTarget?.name}</strong>? This cannot be undone.</p>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+                <Button variant="destructive" onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)} disabled={deleteMutation.isPending}>
+                  {deleteMutation.isPending ? 'Deleting…' : 'Delete'}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
