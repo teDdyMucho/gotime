@@ -15,8 +15,8 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"] if settings.environment != "production" else settings.origins_list,
-    allow_credentials=False if settings.environment != "production" else True,
+    allow_origins=settings.origins_list,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
