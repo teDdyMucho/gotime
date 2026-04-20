@@ -54,3 +54,16 @@ def update_requestor(
     log_event("requestor", str(requestor_id), "update", user["user_id"],
               old_value=existing.data[0], new_value=result.data[0])
     return result.data[0]
+
+
+@router.delete("/{requestor_id}", status_code=204)
+def delete_requestor(
+    requestor_id: UUID,
+    user: dict = Depends(require_dispatcher_or_above),
+):
+    db = get_supabase()
+    existing = db.table("requestors").select("id").eq("id", str(requestor_id)).execute()
+    if not existing.data:
+        raise HTTPException(status_code=404, detail="Requestor not found")
+    db.table("requestors").delete().eq("id", str(requestor_id)).execute()
+    log_event("requestor", str(requestor_id), "delete", user["user_id"])

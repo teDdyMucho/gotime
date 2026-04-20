@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { facilitiesApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
+import { supabase } from '@/lib/auth'
 import type { Facility } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,7 +16,7 @@ import { Badge } from '@/components/ui/badge'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog'
-import { Plus, Pencil } from 'lucide-react'
+import { Plus, Pencil, Trash2 } from 'lucide-react'
 
 const schema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -35,12 +36,24 @@ export function Facilities() {
   const qc = useQueryClient()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Facility | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Facility | null>(null)
   const [apiError, setApiError] = useState<string | null>(null)
 
   const { data: facilities = [], isLoading } = useQuery<Facility[]>({
     queryKey: ['facilities'],
-    queryFn: async () => (await facilitiesApi.list()).data,
+    queryFn: async () => (await facilitiesApi.list({ status: 'all' })).data,
   })
+
+  useEffect(() => {
+    if (!supabase) return
+    const sb = supabase
+    const channel = sb.channel('facilities-rt')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'facilities' }, () => {
+        qc.invalidateQueries({ queryKey: ['facilities'] })
+      })
+      .subscribe()
+    return () => { sb.removeChannel(channel) }
+  }, [qc])
 
   const createMutation = useMutation({
     mutationFn: async (data: FormData) => (await facilitiesApi.create(data)).data,
@@ -52,6 +65,12 @@ export function Facilities() {
     mutationFn: async ({ id, data }: { id: string; data: FormData }) => (await facilitiesApi.update(id, data)).data,
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['facilities'] }); closeDialog() },
     onError: (err: unknown) => setApiError(err instanceof Error ? err.message : 'Error'),
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => facilitiesApi.delete(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['facilities'] }); setDeleteTarget(null) },
+    onError: (err: unknown) => setApiError(err instanceof Error ? err.message : 'Error deleting'),
   })
 
   const { register, handleSubmit, control, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
@@ -140,9 +159,12 @@ export function Facilities() {
                     </Badge>
                   </td>
                   {isAdmin && (
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
                       <Button variant="ghost" size="sm" onClick={() => openEdit(f)}>
                         <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => setDeleteTarget(f)}>
+                        <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </td>
                   )}
@@ -229,6 +251,21 @@ export function Facilities() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirm */}
+      <Dialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
+          <DialogHeader><DialogTitle>Delete Facility</DialogTitle></DialogHeader>
+          <p className="text-sm text-gray-600">Are you sure you want to delete <strong>{deleteTarget?.name}</strong>? This cannot be undone.</p>
+          {apiError && <p className="text-sm text-red-500">{apiError}</p>}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)} disabled={deleteMutation.isPending}>
+              {deleteMutation.isPending ? 'Deleting…' : 'Delete'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

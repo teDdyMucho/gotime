@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { requestorsApi, facilitiesApi } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
+import { supabase } from '@/lib/auth'
 import type { Requestor, Facility } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Plus, Pencil } from 'lucide-react'
+import { Plus, Pencil, Trash2 } from 'lucide-react'
 
 const schema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -33,13 +34,25 @@ export function Requestors() {
   const qc = useQueryClient()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Requestor | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Requestor | null>(null)
   const [facilityFilter, setFacilityFilter] = useState<string>('all')
   const [apiError, setApiError] = useState<string | null>(null)
 
   const { data: requestors = [], isLoading } = useQuery<Requestor[]>({
     queryKey: ['requestors'],
-    queryFn: async () => (await requestorsApi.list()).data,
+    queryFn: async () => (await requestorsApi.list({ status: 'all' })).data,
   })
+
+  useEffect(() => {
+    if (!supabase) return
+    const sb = supabase
+    const channel = sb.channel('requestors-rt')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'requestors' }, () => {
+        qc.invalidateQueries({ queryKey: ['requestors'] })
+      })
+      .subscribe()
+    return () => { sb.removeChannel(channel) }
+  }, [qc])
 
   const { data: facilities = [] } = useQuery<Facility[]>({
     queryKey: ['facilities'],
@@ -56,6 +69,12 @@ export function Requestors() {
     mutationFn: async ({ id, data }: { id: string; data: FormData }) => (await requestorsApi.update(id, data)).data,
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['requestors'] }); closeDialog() },
     onError: (err: unknown) => setApiError(err instanceof Error ? err.message : 'Error'),
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => requestorsApi.delete(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['requestors'] }); setDeleteTarget(null) },
+    onError: (err: unknown) => setApiError(err instanceof Error ? err.message : 'Error deleting'),
   })
 
   const { register, handleSubmit, control, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
@@ -162,9 +181,12 @@ export function Requestors() {
                     <Badge variant={r.status === 'active' ? 'accepted' : 'canceled'}>{r.status}</Badge>
                   </td>
                   {canEdit && (
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
                       <Button variant="ghost" size="sm" onClick={() => openEdit(r)}>
                         <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => setDeleteTarget(r)}>
+                        <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </td>
                   )}
@@ -260,6 +282,20 @@ export function Requestors() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <DialogContent className="max-w-sm" aria-describedby={undefined}>
+          <DialogHeader><DialogTitle>Delete Requestor</DialogTitle></DialogHeader>
+          <p className="text-sm text-gray-600">Are you sure you want to delete <strong>{deleteTarget?.name}</strong>? This cannot be undone.</p>
+          {apiError && <p className="text-sm text-red-500">{apiError}</p>}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)} disabled={deleteMutation.isPending}>
+              {deleteMutation.isPending ? 'Deleting…' : 'Delete'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
