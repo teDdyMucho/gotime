@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     environment: str = "development"
 
     # CORS
-    allowed_origins: str = "http://localhost:5173"
+    allowed_origins: str = "http://localhost:5173,https://gotime-transportation.netlify.app"
 
     # PHI Encryption (Fernet key — generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
     phi_encryption_key: str = ""
