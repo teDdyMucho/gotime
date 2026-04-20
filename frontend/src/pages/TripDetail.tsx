@@ -141,6 +141,7 @@ export function TripDetail() {
       setDeclineReason('')
       setClarificationReason('')
       setReviewNotes('')
+      reviewMutation.reset()
       setActionSuccess(label)
       setTimeout(() => setActionSuccess(null), 3000)
     } catch (err) { setActionError(err instanceof Error ? err.message : 'Action failed') }
@@ -152,6 +153,7 @@ export function TripDetail() {
     try {
       await cancelMutation.mutateAsync({ id, cancellation_reason: cancelReason, ...(reviewNotes ? { review_notes: reviewNotes } : {}) })
       setCancelDialog(false); setCancelReason(''); setReviewNotes('')
+      cancelMutation.reset()
       setActionSuccess('Trip canceled')
       setTimeout(() => setActionSuccess(null), 3000)
     } catch (err) { setActionError(err instanceof Error ? err.message : 'Cancel failed') }
@@ -164,7 +166,9 @@ export function TripDetail() {
     setTimeout(() => { setNotifyDialog(false); setNotifySent(false) }, 1500)
   }
 
-  const isProcessing = reviewMutation.isPending || cancelMutation.isPending
+  const isProcessing =
+    (reviewMutation.isPending && reviewDialog !== null) ||
+    (cancelMutation.isPending && cancelDialog)
 
   return (
     <div className="space-y-5 max-w-5xl">
