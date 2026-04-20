@@ -58,3 +58,16 @@ def update_facility(
     log_event("facility", str(facility_id), "update", user["user_id"],
               old_value=existing.data[0], new_value=result.data[0])
     return result.data[0]
+
+
+@router.delete("/{facility_id}", status_code=204)
+def delete_facility(
+    facility_id: UUID,
+    user: dict = Depends(require_admin),
+):
+    db = get_supabase()
+    existing = db.table("facilities").select("id").eq("id", str(facility_id)).execute()
+    if not existing.data:
+        raise HTTPException(status_code=404, detail="Facility not found")
+    db.table("facilities").delete().eq("id", str(facility_id)).execute()
+    log_event("facility", str(facility_id), "delete", user["user_id"])

@@ -34,12 +34,14 @@ export const facilitiesApi = {
   list: (params?: Record<string, string>) => api.get('/facilities', { params }),
   create: (data: unknown) => api.post('/facilities', data),
   update: (id: string, data: unknown) => api.patch(`/facilities/${id}`, data),
+  delete: (id: string) => api.delete(`/facilities/${id}`),
 }
 
 export const requestorsApi = {
   list: (params?: Record<string, string>) => api.get('/requestors', { params }),
   create: (data: unknown) => api.post('/requestors', data),
   update: (id: string, data: unknown) => api.patch(`/requestors/${id}`, data),
+  delete: (id: string) => api.delete(`/requestors/${id}`),
 }
 
 export const clientsApi = {
@@ -47,12 +49,14 @@ export const clientsApi = {
   get: (id: string) => api.get(`/clients/${id}`),
   create: (data: unknown) => api.post('/clients', data),
   update: (id: string, data: unknown) => api.patch(`/clients/${id}`, data),
+  delete: (id: string) => api.delete(`/clients/${id}`),
 }
 
 export const paySourcesApi = {
   list: (params?: Record<string, string>) => api.get('/pay-sources', { params }),
   create: (data: unknown) => api.post('/pay-sources', data),
   update: (id: string, data: unknown) => api.patch(`/pay-sources/${id}`, data),
+  delete: (id: string) => api.delete(`/pay-sources/${id}`),
 }
 
 export const tripsApi = {

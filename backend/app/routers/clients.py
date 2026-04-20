@@ -73,3 +73,16 @@ def update_client(
     result = db.table("clients").update(data).eq("id", str(client_id)).execute()
     log_event("client", str(client_id), "update", user["user_id"])
     return decrypt_record(result.data[0], CLIENT_PHI_FIELDS)
+
+
+@router.delete("/{client_id}", status_code=204)
+def delete_client(
+    client_id: UUID,
+    user: dict = Depends(require_intake_or_above),
+):
+    db = get_supabase()
+    existing = db.table("clients").select("id").eq("id", str(client_id)).execute()
+    if not existing.data:
+        raise HTTPException(status_code=404, detail="Client not found")
+    db.table("clients").delete().eq("id", str(client_id)).execute()
+    log_event("client", str(client_id), "delete", user["user_id"])

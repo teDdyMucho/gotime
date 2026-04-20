@@ -66,3 +66,15 @@ def update_pay_source(
     data = body.model_dump(mode='json', exclude_none=True)
     result = db.table("pay_sources").update(data).eq("id", str(pay_source_id)).execute()
     return result.data[0]
+
+
+@router.delete("/{pay_source_id}", status_code=204)
+def delete_pay_source(
+    pay_source_id: UUID,
+    user: dict = Depends(require_admin),
+):
+    db = get_supabase()
+    existing = db.table("pay_sources").select("*").eq("id", str(pay_source_id)).execute()
+    if not existing.data:
+        raise HTTPException(status_code=404, detail="Pay source not found")
+    db.table("pay_sources").delete().eq("id", str(pay_source_id)).execute()
