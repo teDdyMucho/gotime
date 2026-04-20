@@ -53,7 +53,7 @@ def decrypt_phi(value: str | None) -> str | None:
 
 
 # PHI field lists per table (mirrors PRD Phase 5 encryption spec)
-CLIENT_PHI_FIELDS = {"full_name", "date_of_birth", "phone", "primary_address", "special_assistance_notes"}
+CLIENT_PHI_FIELDS = {"full_name", "phone", "primary_address", "special_assistance_notes"}
 TRIP_PHI_FIELDS = {"pickup_address", "dropoff_address", "appointment_type"}
 
 
