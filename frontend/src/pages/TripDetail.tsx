@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTrip, useReviewTrip, useCancelTrip } from '@/hooks/useTrips'
 import { useAuth } from '@/hooks/useAuth'
+import { supabase } from '@/lib/auth'
 import { facilitiesApi, requestorsApi, clientsApi, paySourcesApi, tripsApi } from '@/lib/api'
 import type { Facility, Requestor, Client, PaySource, DeclineReason, CancellationReason, ReviewState } from '@/lib/types'
 import { Badge } from '@/components/ui/badge'
@@ -89,10 +90,22 @@ export function TripDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const qc = useQueryClient()
   const { data: trip, isLoading } = useTrip(id!)
 
   const reviewMutation = useReviewTrip()
   const cancelMutation = useCancelTrip()
+
+  useEffect(() => {
+    if (!supabase || !id) return
+    const sb = supabase
+    const channel = sb.channel(`trip-detail-${id}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'trips', filter: `id=eq.${id}` }, () => {
+        qc.invalidateQueries({ queryKey: ['trip', id] })
+      })
+      .subscribe()
+    return () => { sb.removeChannel(channel) }
+  }, [id, qc])
 
   const [reviewDialog, setReviewDialog] = useState<'accept' | 'decline' | 'return' | null>(null)
   const [cancelDialog, setCancelDialog] = useState(false)

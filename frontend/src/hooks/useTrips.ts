@@ -36,8 +36,9 @@ export function useReviewTrip() {
   return useMutation({
     mutationFn: ({ id, ...data }: { id: string; action: string; decline_reason?: string; review_notes?: string }) =>
       tripsApi.review(id, data as Parameters<typeof tripsApi.review>[1]),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ['trips'] })
+      qc.invalidateQueries({ queryKey: ['trip', variables.id] })
     },
   })
 }
@@ -47,6 +48,9 @@ export function useCancelTrip() {
   return useMutation({
     mutationFn: ({ id, ...data }: { id: string; cancellation_reason: string; review_notes?: string }) =>
       tripsApi.cancel(id, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['trips'] }),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ['trips'] })
+      qc.invalidateQueries({ queryKey: ['trip', variables.id] })
+    },
   })
 }
