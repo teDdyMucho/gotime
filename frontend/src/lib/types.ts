@@ -66,6 +66,7 @@ export interface Requestor {
   notes?: string
   created_at: string
   updated_at: string
+  has_trips?: boolean
 }
 
 export interface Client {

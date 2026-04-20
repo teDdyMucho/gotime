@@ -26,6 +26,10 @@ api.interceptors.response.use(
         return api(original)
       }
     }
+    // Suppress expected conflict/not-found errors from browser console
+    if (err.response?.status === 409 || err.response?.status === 404) {
+      return Promise.reject(err)
+    }
     return Promise.reject(err)
   }
 )

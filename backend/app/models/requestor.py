@@ -41,6 +41,7 @@ class RequestorResponse(BaseModel):
     notes: Optional[str] = None
     created_at: datetime
     updated_at: datetime
+    has_trips: bool = False
 
     class Config:
         from_attributes = True
