@@ -13,11 +13,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Combobox } from '@/components/ui/combobox'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Plus, Trash2 } from 'lucide-react'
-
-// ── Schema ────────────────────────────────────────────────────────────────────
 
 const schema = z.object({
   intake_channel: z.enum(['phone', 'email', 'fax', 'portal', 'internal']),
@@ -28,7 +25,6 @@ const schema = z.object({
   client_id: z.string().uuid('Select a client'),
   mobility_level: z.enum(['ambulatory', 'wheelchair', 'stretcher', 'other']).optional(),
   special_notes: z.string().optional(),
-  // Trip Details
   trip_date: z.string().min(1, 'Trip date is required'),
   requested_pickup_time: z.string().optional(),
   dropoff_location_name: z.string().optional(),
@@ -41,12 +37,10 @@ const schema = z.object({
   urgency_level: z.enum(['standard', 'urgent', 'emergency']),
   escort_needed: z.boolean(),
   will_call: z.boolean(),
-  // Billing
   pay_source_id: z.string().uuid().optional().or(z.literal('')),
   expected_revenue: z.number().nonnegative().optional(),
   trip_order_id: z.string().optional(),
   billing_notes: z.string().optional(),
-  // Internal
   intake_notes: z.string().optional(),
   missing_info_flag: z.boolean(),
   internal_warning: z.string().optional(),
@@ -54,7 +48,6 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>
 
-// Extra leg for multi-trip
 interface TripLeg {
   dropoff_location_name: string
   dropoff_address: string
@@ -66,20 +59,6 @@ interface TripLeg {
 function newLeg(): TripLeg {
   return { dropoff_location_name: '', dropoff_address: '', appointment_time: '', appointment_type: '', dropoff_notes: '' }
 }
-
-function FormField({ label, error, required, children }: {
-  label: string; error?: string; required?: boolean; children: React.ReactNode
-}) {
-  return (
-    <div className="space-y-1.5">
-      <Label>{label}{required && <span className="text-red-500 ml-0.5">*</span>}</Label>
-      {children}
-      {error && <p className="text-xs text-red-500">{error}</p>}
-    </div>
-  )
-}
-
-// ── Quick-add schemas ──────────────────────────────────────────────────────────
 
 const quickClientSchema = z.object({
   first_name: z.string().min(1, 'First name is required'),
@@ -106,7 +85,30 @@ const quickFacilitySchema = z.object({
 })
 type QuickFacilityForm = z.infer<typeof quickFacilitySchema>
 
-// ── Component ─────────────────────────────────────────────────────────────────
+function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="px-5 py-3.5 border-b border-gray-100">
+        <p className="text-sm font-semibold text-gray-700">{title}</p>
+      </div>
+      <div className="px-5 py-5">{children}</div>
+    </div>
+  )
+}
+
+function Field({ label, error, required, children }: {
+  label: string; error?: string; required?: boolean; children: React.ReactNode
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+      </Label>
+      {children}
+      {error && <p className="text-xs text-red-500">{error}</p>}
+    </div>
+  )
+}
 
 export function IntakeForm() {
   const navigate = useNavigate()
@@ -135,8 +137,6 @@ export function IntakeForm() {
     queryKey: ['pay-sources'],
     queryFn: async () => (await paySourcesApi.list({ status: 'active' })).data,
   })
-
-  // ── Mutations ──────────────────────────────────────────────────────────────
 
   const quickClientMutation = useMutation({
     mutationFn: async (data: QuickClientForm) => {
@@ -177,8 +177,6 @@ export function IntakeForm() {
     },
   })
 
-  // ── Forms ──────────────────────────────────────────────────────────────────
-
   const {
     register, handleSubmit, control, watch, setValue,
     formState: { errors, isSubmitting },
@@ -209,27 +207,18 @@ export function IntakeForm() {
     formState: { errors: facilityErrors, isSubmitting: facilitySubmitting } } =
     useForm<QuickFacilityForm>({ resolver: zodResolver(quickFacilitySchema) })
 
-  // Local state for quick-add requestor facility
   const [requestorFacilityId, setRequestorFacilityId] = useState('')
-
-  // ── Watched values ─────────────────────────────────────────────────────────
 
   const facilityId = watch('facility_id') ?? ''
   const tripType = watch('trip_type')
   const clientId = watch('client_id') ?? ''
 
-  // Auto-fill pickup address from selected facility
   useEffect(() => {
     const facility = facilities.find((f) => f.id === facilityId)
-    if (facility?.address) {
-      setValue('pickup_address' as keyof FormData, facility.address as never)
-    }
-    if (facility?.default_pay_source_id) {
-      setValue('pay_source_id', facility.default_pay_source_id)
-    }
+    if (facility?.address) setValue('pickup_address' as keyof FormData, facility.address as never)
+    if (facility?.default_pay_source_id) setValue('pay_source_id', facility.default_pay_source_id)
   }, [facilityId, facilities, setValue])
 
-  // Auto-fill callback phone + reply email from selected requestor
   const requestorId = watch('requestor_id') ?? ''
   useEffect(() => {
     const requestor = allRequestors.find((r) => r.id === requestorId)
@@ -239,35 +228,25 @@ export function IntakeForm() {
     }
   }, [requestorId, allRequestors, setValue])
 
-  // Auto-fill DOB from selected client (displayed read-only)
   const selectedClient = clients.find((c) => c.id === clientId)
 
-  // Filter requestors by selected facility
-  // N/A facility ('') → show requestors with no facility
-  // facility selected → show requestors for that facility
   const filteredRequestors = facilityId
     ? allRequestors.filter((r) => r.facility_id === facilityId)
     : allRequestors.filter((r) => !r.facility_id)
 
-  // Combobox options
   const facilityOptions = [
     { value: 'na', label: 'N/A — No Facility', sublabel: 'Walk-in / direct caller' },
     ...facilities.map((f) => ({ value: f.id, label: f.name, sublabel: f.address })),
   ]
 
   const requestorOptions = filteredRequestors.map((r) => ({
-    value: r.id,
-    label: r.name,
-    sublabel: r.title_department,
+    value: r.id, label: r.name, sublabel: r.title_department,
   }))
 
   const clientOptions = clients.map((c) => ({
-    value: c.id,
-    label: c.full_name,
+    value: c.id, label: c.full_name,
     sublabel: c.date_of_birth ? `DOB: ${c.date_of_birth}` : undefined,
   }))
-
-  // ── Submit ─────────────────────────────────────────────────────────────────
 
   async function onSubmit(data: FormData) {
     setSubmitError(null)
@@ -286,22 +265,14 @@ export function IntakeForm() {
     }
   }
 
-  // ── Render ─────────────────────────────────────────────────────────────────
-
   return (
-    <div className="max-w-4xl space-y-6">
-      <h1 className="text-2xl font-semibold text-gray-900">New Trip Request</h1>
+    <div className="max-w-4xl space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-
-        {/* ── Intake Information ─────────────────────────────────────────── */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Intake Information</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-
-            <FormField label="Intake Channel" required error={errors.intake_channel?.message}>
+        {/* Intake Information */}
+        <SectionCard title="Intake Information">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Field label="Intake Channel" required error={errors.intake_channel?.message}>
               <Controller name="intake_channel" control={control} render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
@@ -312,44 +283,31 @@ export function IntakeForm() {
                   </SelectContent>
                 </Select>
               )} />
-            </FormField>
+            </Field>
 
-            <FormField label="Facility" error={errors.facility_id?.message}>
+            <Field label="Facility" error={errors.facility_id?.message}>
               <div className="flex gap-1.5">
                 <Controller name="facility_id" control={control} render={({ field }) => (
-                  <Combobox
-                    className="flex-1"
-                    value={field.value ?? ''}
-                    onChange={field.onChange}
-                    options={facilityOptions}
-                    placeholder="Search facility…"
-                  />
+                  <Combobox className="flex-1" value={field.value ?? ''} onChange={field.onChange}
+                    options={facilityOptions} placeholder="Search facility…" />
                 )} />
                 <Button type="button" variant="outline" size="icon" title="Add facility"
                   onClick={() => { setQuickFacilityFor('intake'); resetFacility({}); setQuickFacilityOpen(true) }}>
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
-              {/* Auto-filled pickup address hint */}
               {facilityId && facilityId !== 'na' && (() => {
                 const f = facilities.find(x => x.id === facilityId)
-                return f?.address ? (
-                  <p className="text-xs text-gray-500 mt-1">Pick-up: {f.address}</p>
-                ) : null
+                return f?.address ? <p className="text-xs text-gray-400 mt-1">Pick-up: {f.address}</p> : null
               })()}
-            </FormField>
+            </Field>
 
-            <FormField label="Requestor" required error={errors.requestor_id?.message}>
+            <Field label="Requestor" required error={errors.requestor_id?.message}>
               <div className="flex gap-1.5">
                 <Controller name="requestor_id" control={control} render={({ field }) => (
-                  <Combobox
-                    className="flex-1"
-                    value={field.value ?? ''}
-                    onChange={field.onChange}
-                    options={requestorOptions}
-                    placeholder="Search requestor…"
-                    emptyText={facilityId ? 'No requestors for this facility' : 'Select a facility first'}
-                  />
+                  <Combobox className="flex-1" value={field.value ?? ''} onChange={field.onChange}
+                    options={requestorOptions} placeholder="Search requestor…"
+                    emptyText={facilityId ? 'No requestors for this facility' : 'Select a facility first'} />
                 )} />
                 <Button type="button" variant="outline" size="icon" title="Quick-add requestor"
                   onClick={() => {
@@ -360,55 +318,40 @@ export function IntakeForm() {
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
-            </FormField>
+            </Field>
 
-            <FormField label="Callback Phone" error={errors.callback_phone?.message}>
+            <Field label="Callback Phone" error={errors.callback_phone?.message}>
               <Input {...register('callback_phone')} placeholder="(555) 000-0000" />
-            </FormField>
+            </Field>
 
-            <FormField label="Reply Email" error={errors.reply_email?.message}>
+            <Field label="Reply Email" error={errors.reply_email?.message}>
               <Input {...register('reply_email')} type="email" placeholder="requestor@facility.org" />
-            </FormField>
+            </Field>
+          </div>
+        </SectionCard>
 
-          </CardContent>
-        </Card>
-
-        {/* ── Client ────────────────────────────────────────────────────────── */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Client</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-
-            <FormField label="Client" required error={errors.client_id?.message}>
+        {/* Client */}
+        <SectionCard title="Client">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Field label="Client" required error={errors.client_id?.message}>
               <div className="flex gap-1.5">
                 <Controller name="client_id" control={control} render={({ field }) => (
-                  <Combobox
-                    className="flex-1"
-                    value={field.value ?? ''}
-                    onChange={field.onChange}
-                    options={clientOptions}
-                    placeholder="Search client…"
-                  />
+                  <Combobox className="flex-1" value={field.value ?? ''} onChange={field.onChange}
+                    options={clientOptions} placeholder="Search client…" />
                 )} />
                 <Button type="button" variant="outline" size="icon" title="Quick-add client"
                   onClick={() => { resetClient({}); setQuickClientOpen(true) }}>
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
-            </FormField>
+            </Field>
 
-            {/* DOB — read-only from client profile */}
-            <FormField label="Date of Birth">
-              <Input
-                readOnly
-                value={selectedClient?.date_of_birth ?? ''}
-                placeholder="Auto-filled from client"
-                className="bg-gray-50 text-gray-600"
-              />
-            </FormField>
+            <Field label="Date of Birth">
+              <Input readOnly value={selectedClient?.date_of_birth ?? ''}
+                placeholder="Auto-filled from client" className="bg-gray-50 text-gray-500" />
+            </Field>
 
-            <FormField label="Mobility Level" error={errors.mobility_level?.message}>
+            <Field label="Mobility Level" error={errors.mobility_level?.message}>
               <Controller name="mobility_level" control={control} render={({ field }) => (
                 <Select value={field.value ?? ''} onValueChange={field.onChange}>
                   <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
@@ -419,70 +362,52 @@ export function IntakeForm() {
                   </SelectContent>
                 </Select>
               )} />
-            </FormField>
+            </Field>
 
             <div className="lg:col-span-3">
-              <FormField label="Special Notes" error={errors.special_notes?.message}>
-                <Textarea {...register('special_notes')} rows={2} placeholder="Mobility aids, access notes…" />
-              </FormField>
+              <Field label="Special Notes" error={errors.special_notes?.message}>
+                <Textarea {...register('special_notes')} rows={2} placeholder="Mobility aids, access notes…" className="resize-none" />
+              </Field>
             </div>
+          </div>
+        </SectionCard>
 
-          </CardContent>
-        </Card>
-
-        {/* ── Trip Details ───────────────────────────────────────────────────── */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Trip Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-
-            {/* Leg 1 */}
+        {/* Trip Details */}
+        <SectionCard title="Trip Details">
+          <div className="space-y-5">
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Leg 1</p>
+              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">Leg 1</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-
-                <FormField label="Pick-up Date" required error={errors.trip_date?.message}>
+                <Field label="Pick-up Date" required error={errors.trip_date?.message}>
                   <Input type="date" {...register('trip_date')} />
-                </FormField>
-
-                <FormField label="Pick-up Time" error={errors.requested_pickup_time?.message}>
+                </Field>
+                <Field label="Pick-up Time" error={errors.requested_pickup_time?.message}>
                   <Input type="time" {...register('requested_pickup_time')} />
-                </FormField>
-
-                <FormField label="Drop-off Location Name" error={errors.dropoff_location_name?.message}>
+                </Field>
+                <Field label="Drop-off Location Name" error={errors.dropoff_location_name?.message}>
                   <Input {...register('dropoff_location_name')} placeholder="e.g. Mass General Hospital" />
-                </FormField>
-
-                <FormField label="Drop-off Address" error={errors.dropoff_address?.message}>
+                </Field>
+                <Field label="Drop-off Address" error={errors.dropoff_address?.message}>
                   <Input {...register('dropoff_address')} placeholder="456 Medical Center Dr" />
-                </FormField>
-
-                <FormField label="Appointment Time" error={errors.appointment_time?.message}>
+                </Field>
+                <Field label="Appointment Time" error={errors.appointment_time?.message}>
                   <Input type="time" {...register('appointment_time')} />
-                </FormField>
-
-                <FormField label="Appointment Type" error={errors.appointment_type?.message}>
+                </Field>
+                <Field label="Appointment Type" error={errors.appointment_type?.message}>
                   <Input {...register('appointment_type')} placeholder="e.g. Dialysis, Oncology" />
-                </FormField>
-
+                </Field>
                 <div className="lg:col-span-3">
-                  <FormField label="Drop-off Notes (floor, suite, dept)" error={errors.dropoff_notes?.message}>
+                  <Field label="Drop-off Notes (floor, suite, dept)" error={errors.dropoff_notes?.message}>
                     <Input {...register('dropoff_notes')} placeholder="e.g. 3rd floor, Suite 310" />
-                  </FormField>
+                  </Field>
                 </div>
-
               </div>
             </div>
 
-            {/* Trip Type + conditional legs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <FormField label="Trip Type" required error={errors.trip_type?.message}>
+              <Field label="Trip Type" required error={errors.trip_type?.message}>
                 <Controller name="trip_type" control={control} render={({ field }) => (
-                  <Select value={field.value} onValueChange={(v) => {
-                    field.onChange(v)
-                    if (v !== 'multi_trip') setAdditionalLegs([])
-                  }}>
+                  <Select value={field.value} onValueChange={(v) => { field.onChange(v); if (v !== 'multi_trip') setAdditionalLegs([]) }}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="one_way">One Way</SelectItem>
@@ -491,9 +416,9 @@ export function IntakeForm() {
                     </SelectContent>
                   </Select>
                 )} />
-              </FormField>
+              </Field>
 
-              <FormField label="Urgency Level" required error={errors.urgency_level?.message}>
+              <Field label="Urgency Level" required error={errors.urgency_level?.message}>
                 <Controller name="urgency_level" control={control} render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
@@ -504,43 +429,37 @@ export function IntakeForm() {
                     </SelectContent>
                   </Select>
                 )} />
-              </FormField>
+              </Field>
 
-              <div className="flex items-center gap-4 mt-6">
+              <div className="flex items-center gap-5 mt-6">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" {...register('escort_needed')} className="h-4 w-4 rounded border-gray-300 accent-brand-600" />
-                  <span className="text-sm">Escort Needed</span>
+                  <span className="text-xs font-medium text-gray-600">Escort Needed</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" {...register('will_call')} className="h-4 w-4 rounded border-gray-300 accent-brand-600" />
-                  <span className="text-sm">Will Call</span>
+                  <span className="text-xs font-medium text-gray-600">Will Call</span>
                 </label>
               </div>
             </div>
 
-            {/* Round Trip — return time */}
             {tripType === 'round_trip' && (
-              <div className="rounded-lg border border-gray-100 bg-gray-50 p-4 space-y-3">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                  Leg 2 — Return to Pick-up Address
-                </p>
+              <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-3">
+                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Leg 2 — Return to Pick-up Address</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField label="Return Pickup Time" error={errors.return_time?.message}>
+                  <Field label="Return Pickup Time" error={errors.return_time?.message}>
                     <Input type="time" {...register('return_time')} />
-                  </FormField>
+                  </Field>
                 </div>
               </div>
             )}
 
-            {/* Multi-Trip — additional legs */}
             {tripType === 'multi_trip' && (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {additionalLegs.map((leg, i) => (
-                  <div key={i} className="rounded-lg border border-gray-100 bg-gray-50 p-4 space-y-3">
+                  <div key={i} className="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-3">
                     <div className="flex items-center justify-between">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                        Leg {i + 2}
-                      </p>
+                      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Leg {i + 2}</p>
                       <Button type="button" variant="ghost" size="icon" className="h-6 w-6"
                         onClick={() => setAdditionalLegs((prev) => prev.filter((_, j) => j !== i))}>
                         <Trash2 className="h-3.5 w-3.5 text-gray-400" />
@@ -557,11 +476,8 @@ export function IntakeForm() {
                         ] as [keyof TripLeg, string, string, string][]
                       ).map(([key, label, type, placeholder]) => (
                         <div key={key} className="space-y-1.5">
-                          <Label className="text-xs">{label}</Label>
-                          <Input
-                            type={type}
-                            placeholder={placeholder}
-                            value={leg[key]}
+                          <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{label}</Label>
+                          <Input type={type} placeholder={placeholder} value={leg[key]}
                             onChange={(e) =>
                               setAdditionalLegs((prev) =>
                                 prev.map((l, j) => j === i ? { ...l, [key]: e.target.value } : l)
@@ -573,25 +489,20 @@ export function IntakeForm() {
                     </div>
                   </div>
                 ))}
-                <Button type="button" variant="outline" size="sm"
+                <Button type="button" variant="outline" size="sm" className="h-8 text-xs"
                   onClick={() => setAdditionalLegs((prev) => [...prev, newLeg()])}>
-                  <Plus className="h-4 w-4 mr-1.5" />
+                  <Plus className="h-3.5 w-3.5 mr-1.5" />
                   Add Trip Leg
                 </Button>
               </div>
             )}
+          </div>
+        </SectionCard>
 
-          </CardContent>
-        </Card>
-
-        {/* ── Billing ────────────────────────────────────────────────────────── */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Billing</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-
-            <FormField label="Pay Source" error={errors.pay_source_id?.message}>
+        {/* Billing */}
+        <SectionCard title="Billing">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Field label="Pay Source" error={errors.pay_source_id?.message}>
               <Controller name="pay_source_id" control={control} render={({ field }) => (
                 <Select value={field.value ?? ''} onValueChange={field.onChange}>
                   <SelectTrigger><SelectValue placeholder="Select pay source…" /></SelectTrigger>
@@ -602,181 +513,172 @@ export function IntakeForm() {
                   </SelectContent>
                 </Select>
               )} />
-            </FormField>
+            </Field>
 
-            <FormField label="Expected Revenue ($)" error={errors.expected_revenue?.message}>
+            <Field label="Expected Revenue ($)" error={errors.expected_revenue?.message}>
               <Input type="number" step="0.01" min="0"
-                {...register('expected_revenue', { valueAsNumber: true })}
-                placeholder="0.00" />
-            </FormField>
+                {...register('expected_revenue', { valueAsNumber: true })} placeholder="0.00" />
+            </Field>
 
-            <FormField label="Trip Order ID" error={errors.trip_order_id?.message}>
+            <Field label="Trip Order ID" error={errors.trip_order_id?.message}>
               <Input {...register('trip_order_id')} placeholder="External order reference" />
-            </FormField>
+            </Field>
 
             <div className="lg:col-span-2">
-              <FormField label="Billing Notes" error={errors.billing_notes?.message}>
-                <Textarea {...register('billing_notes')} rows={2} placeholder="Auth codes, billing instructions…" />
-              </FormField>
+              <Field label="Billing Notes" error={errors.billing_notes?.message}>
+                <Textarea {...register('billing_notes')} rows={2} placeholder="Auth codes, billing instructions…" className="resize-none" />
+              </Field>
             </div>
+          </div>
+        </SectionCard>
 
-          </CardContent>
-        </Card>
-
-        {/* ── Internal Notes ─────────────────────────────────────────────────── */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Internal Notes</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-            <FormField label="Dispatch Notes" error={errors.intake_notes?.message}>
-              <Textarea {...register('intake_notes')} rows={3} placeholder="Notes for dispatcher…" />
-            </FormField>
-
-            <FormField label="Internal Warning" error={errors.internal_warning?.message}>
-              <Textarea {...register('internal_warning')} rows={3} placeholder="Flags or warnings for dispatcher…" />
-            </FormField>
-
+        {/* Internal Notes */}
+        <SectionCard title="Internal Notes">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Field label="Dispatch Notes" error={errors.intake_notes?.message}>
+              <Textarea {...register('intake_notes')} rows={3} placeholder="Notes for dispatcher…" className="resize-none" />
+            </Field>
+            <Field label="Internal Warning" error={errors.internal_warning?.message}>
+              <Textarea {...register('internal_warning')} rows={3} placeholder="Flags or warnings for dispatcher…" className="resize-none" />
+            </Field>
             <div className="flex items-center gap-2">
               <input type="checkbox" id="missing_info" {...register('missing_info_flag')}
                 className="h-4 w-4 rounded border-gray-300 accent-amber-500" />
-              <Label htmlFor="missing_info">Missing Info Flag</Label>
+              <Label htmlFor="missing_info" className="text-xs font-semibold text-gray-500 uppercase tracking-wide cursor-pointer">
+                Missing Info Flag
+              </Label>
             </div>
-
-          </CardContent>
-        </Card>
+          </div>
+        </SectionCard>
 
         {submitError && (
-          <div className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-600">{submitError}</div>
+          <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">{submitError}</div>
         )}
 
         <div className="flex gap-3">
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" disabled={isSubmitting} className="h-9 px-5 text-sm">
             {isSubmitting ? 'Submitting…' : 'Submit Trip Request'}
           </Button>
-          <Button type="button" variant="outline" onClick={() => navigate(-1)}>Cancel</Button>
+          <Button type="button" variant="outline" className="h-9 px-5 text-sm" onClick={() => navigate(-1)}>Cancel</Button>
         </div>
       </form>
 
-      {/* ── Quick-Add Client ──────────────────────────────────────────────── */}
+      {/* Quick-Add Client */}
       <Dialog open={quickClientOpen} onOpenChange={setQuickClientOpen}>
         <DialogContent className="max-w-md" aria-describedby={undefined}>
           <DialogHeader><DialogTitle>Quick-Add Client</DialogTitle></DialogHeader>
-          <form onSubmit={handleClient(async (data) => quickClientMutation.mutateAsync(data))} className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>First Name *</Label>
-                <Input {...regClient('first_name')} autoFocus />
-                {clientErrors.first_name && <p className="text-xs text-red-500">{clientErrors.first_name.message}</p>}
+          <form onSubmit={handleClient(async (data) => quickClientMutation.mutateAsync(data))}>
+            <div className="px-6 py-5 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">First Name *</Label>
+                  <Input {...regClient('first_name')} autoFocus />
+                  {clientErrors.first_name && <p className="text-xs text-red-500">{clientErrors.first_name.message}</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Last Name *</Label>
+                  <Input {...regClient('last_name')} />
+                  {clientErrors.last_name && <p className="text-xs text-red-500">{clientErrors.last_name.message}</p>}
+                </div>
               </div>
               <div className="space-y-1.5">
-                <Label>Last Name *</Label>
-                <Input {...regClient('last_name')} />
-                {clientErrors.last_name && <p className="text-xs text-red-500">{clientErrors.last_name.message}</p>}
+                <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Date of Birth</Label>
+                <Input type="date" {...regClient('date_of_birth')} />
               </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Mobility Level</Label>
+                <Select onValueChange={(v) => regClient('mobility_level').onChange({ target: { value: v } })}>
+                  <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                  <SelectContent>
+                    {(['ambulatory', 'wheelchair', 'stretcher', 'other'] as const).map((v) => (
+                      <SelectItem key={v} value={v} className="capitalize">{v}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {quickClientMutation.isError && <p className="text-xs text-red-500">Failed to create client</p>}
             </div>
-            <div className="space-y-1.5">
-              <Label>Date of Birth</Label>
-              <Input type="date" {...regClient('date_of_birth')} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Mobility Level</Label>
-              <Select onValueChange={(v) => regClient('mobility_level').onChange({ target: { value: v } })}>
-                <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
-                <SelectContent>
-                  {(['ambulatory', 'wheelchair', 'stretcher', 'other'] as const).map((v) => (
-                    <SelectItem key={v} value={v} className="capitalize">{v}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {quickClientMutation.isError && <p className="text-xs text-red-500">Failed to create client</p>}
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setQuickClientOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={clientSubmitting}>{clientSubmitting ? 'Creating…' : 'Create & Select'}</Button>
+              <Button type="button" variant="outline" size="sm" onClick={() => setQuickClientOpen(false)}>Cancel</Button>
+              <Button type="submit" size="sm" disabled={clientSubmitting}>{clientSubmitting ? 'Creating…' : 'Create & Select'}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* ── Quick-Add Requestor ───────────────────────────────────────────── */}
+      {/* Quick-Add Requestor */}
       <Dialog open={quickRequestorOpen} onOpenChange={setQuickRequestorOpen}>
         <DialogContent className="max-w-md" aria-describedby={undefined}>
           <DialogHeader><DialogTitle>Quick-Add Requestor</DialogTitle></DialogHeader>
           <form onSubmit={handleRequestor(async (data) =>
-            quickRequestorMutation.mutateAsync({
-              ...data,
-              facility_id: requestorFacilityId || undefined,
-            } as QuickRequestorForm)
-          )} className="space-y-3">
-            <div className="space-y-1.5">
-              <Label>Name *</Label>
-              <Input {...regRequestor('name')} autoFocus />
-              {requestorErrors.name && <p className="text-xs text-red-500">{requestorErrors.name.message}</p>}
-            </div>
-            {/* Facility for the requestor */}
-            <div className="space-y-1.5">
-              <Label>Facility</Label>
-              <div className="flex gap-1.5">
-                <Combobox
-                  className="flex-1"
-                  value={requestorFacilityId}
-                  onChange={setRequestorFacilityId}
-                  options={facilityOptions.filter(o => o.value !== 'na')}
-                  placeholder="Link to facility (optional)"
-                />
-                <Button type="button" variant="outline" size="icon" title="Add facility"
-                  onClick={() => { setQuickFacilityFor('requestor'); resetFacility({}); setQuickFacilityOpen(true) }}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
+            quickRequestorMutation.mutateAsync({ ...data, facility_id: requestorFacilityId || undefined } as QuickRequestorForm)
+          )}>
+            <div className="px-6 py-5 space-y-4">
               <div className="space-y-1.5">
-                <Label>Title / Dept</Label>
-                <Input {...regRequestor('title_department')} />
+                <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Name *</Label>
+                <Input {...regRequestor('name')} autoFocus />
+                {requestorErrors.name && <p className="text-xs text-red-500">{requestorErrors.name.message}</p>}
               </div>
               <div className="space-y-1.5">
-                <Label>Phone</Label>
-                <Input {...regRequestor('phone')} />
+                <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Facility</Label>
+                <div className="flex gap-1.5">
+                  <Combobox className="flex-1" value={requestorFacilityId} onChange={setRequestorFacilityId}
+                    options={facilityOptions.filter(o => o.value !== 'na')}
+                    placeholder="Link to facility (optional)" />
+                  <Button type="button" variant="outline" size="icon" title="Add facility"
+                    onClick={() => { setQuickFacilityFor('requestor'); resetFacility({}); setQuickFacilityOpen(true) }}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Title / Dept</Label>
+                  <Input {...regRequestor('title_department')} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Phone</Label>
+                  <Input {...regRequestor('phone')} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Email</Label>
+                <Input {...regRequestor('email')} type="email" />
+              </div>
+              {quickRequestorMutation.isError && <p className="text-xs text-red-500">Failed to create requestor</p>}
             </div>
-            <div className="space-y-1.5">
-              <Label>Email</Label>
-              <Input {...regRequestor('email')} type="email" />
-            </div>
-            {quickRequestorMutation.isError && <p className="text-xs text-red-500">Failed to create requestor</p>}
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setQuickRequestorOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={requestorSubmitting}>{requestorSubmitting ? 'Creating…' : 'Create & Select'}</Button>
+              <Button type="button" variant="outline" size="sm" onClick={() => setQuickRequestorOpen(false)}>Cancel</Button>
+              <Button type="submit" size="sm" disabled={requestorSubmitting}>{requestorSubmitting ? 'Creating…' : 'Create & Select'}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* ── Quick-Add Facility ────────────────────────────────────────────── */}
+      {/* Quick-Add Facility */}
       <Dialog open={quickFacilityOpen} onOpenChange={setQuickFacilityOpen}>
         <DialogContent className="max-w-sm" aria-describedby={undefined}>
           <DialogHeader><DialogTitle>Add Facility</DialogTitle></DialogHeader>
-          <form onSubmit={handleFacility(async (data) => quickFacilityMutation.mutateAsync(data))} className="space-y-3">
-            <div className="space-y-1.5">
-              <Label>Name *</Label>
-              <Input {...regFacility('name')} autoFocus />
-              {facilityErrors.name && <p className="text-xs text-red-500">{facilityErrors.name.message}</p>}
+          <form onSubmit={handleFacility(async (data) => quickFacilityMutation.mutateAsync(data))}>
+            <div className="px-6 py-5 space-y-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Name *</Label>
+                <Input {...regFacility('name')} autoFocus />
+                {facilityErrors.name && <p className="text-xs text-red-500">{facilityErrors.name.message}</p>}
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Address</Label>
+                <Input {...regFacility('address')} placeholder="123 Main St, City, ST" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Phone</Label>
+                <Input {...regFacility('phone')} />
+              </div>
+              {quickFacilityMutation.isError && <p className="text-xs text-red-500">Failed to create facility</p>}
             </div>
-            <div className="space-y-1.5">
-              <Label>Address</Label>
-              <Input {...regFacility('address')} placeholder="123 Main St, City, ST" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Phone</Label>
-              <Input {...regFacility('phone')} />
-            </div>
-            {quickFacilityMutation.isError && <p className="text-xs text-red-500">Failed to create facility</p>}
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setQuickFacilityOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={facilitySubmitting}>{facilitySubmitting ? 'Creating…' : 'Create & Select'}</Button>
+              <Button type="button" variant="outline" size="sm" onClick={() => setQuickFacilityOpen(false)}>Cancel</Button>
+              <Button type="submit" size="sm" disabled={facilitySubmitting}>{facilitySubmitting ? 'Creating…' : 'Create & Select'}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
