@@ -136,98 +136,98 @@ export function Requestors() {
   )
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Requestors</h1>
-        <Button onClick={openCreate}>
-          <Plus className="h-4 w-4 mr-1.5" />
+        <Select value={facilityFilter} onValueChange={setFacilityFilter}>
+          <SelectTrigger className="w-52 h-8 text-xs">
+            <SelectValue placeholder="All Facilities" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all" className="text-xs">All Facilities</SelectItem>
+            {facilities.map((f) => (
+              <SelectItem key={f.id} value={f.id} className="text-xs">{f.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button size="sm" onClick={openCreate} className="h-8 text-xs">
+          <Plus className="h-3.5 w-3.5 mr-1.5" />
           Add Requestor
         </Button>
       </div>
 
-      <Select value={facilityFilter} onValueChange={setFacilityFilter}>
-        <SelectTrigger className="w-56">
-          <SelectValue placeholder="All Facilities" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Facilities</SelectItem>
-          {facilities.map((f) => (
-            <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      <div className="flex gap-1 border-b border-gray-200">
-        <button
-          onClick={() => setActiveTab('no_trips')}
-          className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-            activeTab === 'no_trips'
-              ? 'border-brand-600 text-brand-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          No Trips
-          <span className="ml-1.5 text-xs bg-gray-100 text-gray-600 rounded-full px-1.5 py-0.5">
-            {byFacility.filter((r) => !r.has_trips).length}
-          </span>
-        </button>
-        <button
-          onClick={() => setActiveTab('has_trips')}
-          className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
-            activeTab === 'has_trips'
-              ? 'border-brand-600 text-brand-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Has Trips
-          <span className="ml-1.5 text-xs bg-gray-100 text-gray-600 rounded-full px-1.5 py-0.5">
-            {byFacility.filter((r) => r.has_trips).length}
-          </span>
-        </button>
-      </div>
-
       {isLoading ? (
-        <div className="flex justify-center py-16">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600" />
+        <div className="flex justify-center py-20">
+          <div className="animate-spin rounded-full h-7 w-7 border-2 border-gray-200 border-t-brand-600" />
         </div>
       ) : (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="flex border-b border-gray-100 px-1 pt-1">
+            <button
+              onClick={() => setActiveTab('no_trips')}
+              className={`px-4 py-2 text-xs font-semibold border-b-2 -mb-px transition-colors ${
+                activeTab === 'no_trips'
+                  ? 'border-brand-600 text-brand-700'
+                  : 'border-transparent text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              No Trips
+              <span className="ml-1.5 bg-gray-100 text-gray-500 rounded-full px-1.5 py-0.5 text-[10px] font-medium">
+                {byFacility.filter((r) => !r.has_trips).length}
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab('has_trips')}
+              className={`px-4 py-2 text-xs font-semibold border-b-2 -mb-px transition-colors ${
+                activeTab === 'has_trips'
+                  ? 'border-brand-600 text-brand-700'
+                  : 'border-transparent text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              Has Trips
+              <span className="ml-1.5 bg-gray-100 text-gray-500 rounded-full px-1.5 py-0.5 text-[10px] font-medium">
+                {byFacility.filter((r) => r.has_trips).length}
+              </span>
+            </button>
+          </div>
+
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Name</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Facility</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Phone</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Notify Via</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-                {canEdit && <th className="px-4 py-3" />}
+              <tr className="border-b border-gray-100 bg-gray-50/70">
+                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Name</th>
+                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Facility</th>
+                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Phone</th>
+                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Notify Via</th>
+                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+                {canEdit && <th className="px-4 py-2.5 w-20" />}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-50">
               {!filtered.length ? (
-                <tr><td colSpan={6} className="text-center py-10 text-gray-400">No requestors found</td></tr>
+                <tr><td colSpan={6} className="text-center py-14 text-gray-400 text-sm">No requestors found</td></tr>
               ) : filtered.map((r) => (
-                <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
+                <tr key={r.id} className="hover:bg-gray-50/60 transition-colors">
                   <td className="px-4 py-3">
-                    <p className="font-medium text-gray-900">{r.name}</p>
-                    {r.title_department && <p className="text-xs text-gray-400">{r.title_department}</p>}
+                    <p className="font-medium text-gray-900 text-sm">{r.name}</p>
+                    {r.title_department && <p className="text-[11px] text-gray-400 mt-0.5">{r.title_department}</p>}
                   </td>
-                  <td className="px-4 py-3 text-gray-500">{(r.facility_id ? facilityMap[r.facility_id] : undefined) ?? '—'}</td>
-                  <td className="px-4 py-3 text-gray-500">{r.phone ?? '—'}</td>
-                  <td className="px-4 py-3 text-gray-500 capitalize">{r.preferred_notification_method}</td>
+                  <td className="px-4 py-3 text-gray-500 text-xs">{(r.facility_id ? facilityMap[r.facility_id] : undefined) ?? '—'}</td>
+                  <td className="px-4 py-3 text-gray-500 text-xs">{r.phone ?? '—'}</td>
+                  <td className="px-4 py-3 text-gray-500 text-xs capitalize">{r.preferred_notification_method}</td>
                   <td className="px-4 py-3">
-                    <Badge variant={r.status === 'active' ? 'accepted' : 'canceled'}>{r.status}</Badge>
+                    <Badge variant={r.status === 'active' ? 'accepted' : 'canceled'} className="text-[11px]">{r.status}</Badge>
                   </td>
                   {canEdit && (
-                    <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => openEdit(r)}>
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      {activeTab === 'no_trips' && (
-                        <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => setDeleteTarget(r)}>
-                          <Trash2 className="h-3.5 w-3.5" />
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-0.5">
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => openEdit(r)}>
+                          <Pencil className="h-3.5 w-3.5 text-gray-400" />
                         </Button>
-                      )}
+                        {activeTab === 'no_trips' && (
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50" onClick={() => setDeleteTarget(r)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
                     </td>
                   )}
                 </tr>
@@ -245,18 +245,18 @@ export function Requestors() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2 space-y-1.5">
-                <Label>Name *</Label>
+                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Name *</Label>
                 <Input {...register('name')} />
                 {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
               </div>
 
               <div className="space-y-1.5">
-                <Label>Title / Department</Label>
+                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Title / Department</Label>
                 <Input {...register('title_department')} />
               </div>
 
               <div className="space-y-1.5">
-                <Label>Facility *</Label>
+                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Facility *</Label>
                 <Controller name="facility_id" control={control} render={({ field }) => (
                   <Select value={field.value ?? ''} onValueChange={field.onChange}>
                     <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
@@ -271,17 +271,17 @@ export function Requestors() {
               </div>
 
               <div className="space-y-1.5">
-                <Label>Phone</Label>
+                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Phone</Label>
                 <Input {...register('phone')} />
               </div>
 
               <div className="space-y-1.5">
-                <Label>Email</Label>
+                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Email</Label>
                 <Input {...register('email')} type="email" />
               </div>
 
               <div className="space-y-1.5">
-                <Label>Notification Method</Label>
+                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Notification Method</Label>
                 <Controller name="preferred_notification_method" control={control} render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
@@ -295,7 +295,7 @@ export function Requestors() {
               </div>
 
               <div className="space-y-1.5">
-                <Label>Status</Label>
+                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Status</Label>
                 <Controller name="status" control={control} render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
@@ -308,16 +308,16 @@ export function Requestors() {
               </div>
 
               <div className="col-span-2 space-y-1.5">
-                <Label>Notes</Label>
-                <Textarea {...register('notes')} rows={2} />
+                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Notes</Label>
+                <Textarea {...register('notes')} rows={2} className="resize-none" />
               </div>
             </div>
 
             {apiError && <p className="text-sm text-red-500">{apiError}</p>}
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={closeDialog}>Cancel</Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="button" variant="outline" size="sm" onClick={closeDialog}>Cancel</Button>
+              <Button type="submit" size="sm" disabled={isSubmitting}>
                 {isSubmitting ? 'Saving…' : editing ? 'Save Changes' : 'Create'}
               </Button>
             </DialogFooter>
@@ -332,21 +332,21 @@ export function Requestors() {
           </DialogHeader>
           {apiError ? (
             <div className="space-y-3">
-              <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 space-y-2">
-                <p className="font-semibold">⚠ {deleteTarget?.name} cannot be deleted</p>
+              <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 space-y-2">
+                <p className="font-semibold">{deleteTarget?.name} cannot be deleted</p>
                 <p>{apiError}</p>
                 <p className="text-xs text-amber-600">To delete this requestor, first reassign or remove all linked trips.</p>
               </div>
               <DialogFooter>
-                <Button className="w-full" onClick={() => { setDeleteTarget(null); setApiError(null) }}>Got it</Button>
+                <Button size="sm" className="w-full" onClick={() => { setDeleteTarget(null); setApiError(null) }}>Got it</Button>
               </DialogFooter>
             </div>
           ) : (
             <>
               <p className="text-sm text-gray-600">Are you sure you want to delete <strong>{deleteTarget?.name}</strong>? This cannot be undone.</p>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
-                <Button variant="destructive" onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)} disabled={deleteMutation.isPending}>
+                <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+                <Button variant="destructive" size="sm" onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)} disabled={deleteMutation.isPending}>
                   {deleteMutation.isPending ? 'Deleting…' : 'Delete'}
                 </Button>
               </DialogFooter>
