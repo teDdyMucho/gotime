@@ -140,59 +140,59 @@ export function Clients() {
   })
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Clients</h1>
-        <Button onClick={openCreate}>
-          <Plus className="h-4 w-4 mr-1.5" />
+    <div className="space-y-5">
+      <div className="flex items-center gap-3 justify-between">
+        <div className="relative max-w-xs flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+          <Input
+            placeholder="Search by name or phone…"
+            className="pl-8 h-8 text-xs bg-white"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <Button size="sm" onClick={openCreate} className="h-8 text-xs shrink-0">
+          <Plus className="h-3.5 w-3.5 mr-1.5" />
           Add Client
         </Button>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <Input
-          placeholder="Search by name or phone…"
-          className="pl-9"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
       {isLoading ? (
-        <div className="flex justify-center py-16">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600" />
+        <div className="flex justify-center py-20">
+          <div className="animate-spin rounded-full h-7 w-7 border-2 border-gray-200 border-t-brand-600" />
         </div>
       ) : (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Name</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">DOB</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Phone</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Mobility</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Facility</th>
-                <th className="px-4 py-3" />
+              <tr className="border-b border-gray-100 bg-gray-50/70">
+                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Name</th>
+                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">DOB</th>
+                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Phone</th>
+                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Mobility</th>
+                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Facility</th>
+                <th className="px-4 py-2.5 w-20" />
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-50">
               {!filtered.length ? (
-                <tr><td colSpan={6} className="text-center py-10 text-gray-400">No clients found</td></tr>
+                <tr><td colSpan={6} className="text-center py-14 text-gray-400 text-sm">No clients found</td></tr>
               ) : filtered.map((c) => (
-                <tr key={c.id} className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium text-gray-900">{c.full_name}</td>
-                  <td className="px-4 py-3 text-gray-500">{c.date_of_birth ? formatDate(c.date_of_birth) : '—'}</td>
-                  <td className="px-4 py-3 text-gray-500">{c.phone ?? '—'}</td>
-                  <td className="px-4 py-3 text-gray-500 capitalize">{c.mobility_level ?? '—'}</td>
-                  <td className="px-4 py-3 text-gray-500">{c.primary_facility_id ? (facilityMap[c.primary_facility_id] ?? '—') : '—'}</td>
-                  <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
-                    <Button variant="ghost" size="sm" onClick={() => openEdit(c)}>
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => setDeleteTarget(c)}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                <tr key={c.id} className="hover:bg-gray-50/60 transition-colors">
+                  <td className="px-4 py-3 font-medium text-gray-900 text-sm">{c.full_name}</td>
+                  <td className="px-4 py-3 text-gray-500 text-xs">{c.date_of_birth ? formatDate(c.date_of_birth) : '—'}</td>
+                  <td className="px-4 py-3 text-gray-500 text-xs">{c.phone ?? '—'}</td>
+                  <td className="px-4 py-3 text-gray-500 text-xs capitalize">{c.mobility_level ?? '—'}</td>
+                  <td className="px-4 py-3 text-gray-500 text-xs">{c.primary_facility_id ? (facilityMap[c.primary_facility_id] ?? '—') : '—'}</td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center justify-end gap-0.5">
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => openEdit(c)}>
+                        <Pencil className="h-3.5 w-3.5 text-gray-400" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50" onClick={() => setDeleteTarget(c)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}

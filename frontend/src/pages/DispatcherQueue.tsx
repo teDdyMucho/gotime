@@ -40,9 +40,7 @@ function urgencyBadge(u: UrgencyLevel) {
   return (u === 'emergency' ? 'emergency' : u === 'urgent' ? 'urgent' : 'standard') as Parameters<typeof Badge>[0]['variant']
 }
 
-
 type SortKey = 'trip_date' | 'urgency_level' | 'intake_date'
-
 const URGENCY_ORDER: Record<UrgencyLevel, number> = { emergency: 0, urgent: 1, standard: 2 }
 
 export function DispatcherQueue() {
@@ -57,20 +55,19 @@ export function DispatcherQueue() {
   const [dateTo, setDateTo]                 = useState('')
 
   const params: Record<string, string> = {}
-  if (stateFilter !== 'all')     params.review_state  = stateFilter
-  if (facilityFilter !== 'all')  params.facility_id   = facilityFilter
-  if (paySourceFilter !== 'all') params.pay_source_id = paySourceFilter
+  if (stateFilter !== 'all')     params.review_state      = stateFilter
+  if (facilityFilter !== 'all')  params.facility_id       = facilityFilter
+  if (paySourceFilter !== 'all') params.pay_source_id     = paySourceFilter
   if (missingOnly)               params.missing_info_flag = 'true'
 
   const { data: trips = [], isLoading, refetch } = useTrips(params)
-
   const { data: facilities  = [] } = useQuery<Facility[]>({ queryKey: ['facilities'],   queryFn: async () => (await facilitiesApi.list()).data })
   const { data: clients     = [] } = useQuery<Client[]>({ queryKey: ['clients'],        queryFn: async () => (await clientsApi.list()).data })
   const { data: paySources  = [] } = useQuery<PaySource[]>({ queryKey: ['pay-sources'], queryFn: async () => (await paySourcesApi.list()).data })
 
-  const facilityMap   = Object.fromEntries(facilities.map((f) => [f.id, f]))
-  const clientMap     = Object.fromEntries(clients.map((c) => [c.id, c.full_name]))
-  const paySourceMap  = Object.fromEntries(paySources.map((p) => [p.id, p.name]))
+  const facilityMap  = Object.fromEntries(facilities.map((f) => [f.id, f]))
+  const clientMap    = Object.fromEntries(clients.map((c) => [c.id, c.full_name]))
+  const paySourceMap = Object.fromEntries(paySources.map((p) => [p.id, p.name]))
 
   const filtered = trips
     .filter((t) => {
@@ -112,185 +109,191 @@ export function DispatcherQueue() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-semibold text-gray-900">Trip Queue</h1>
           {pendingCount > 0 && (
-            <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
+            <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700 border border-amber-200">
               {pendingCount} pending
             </span>
           )}
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleExportCsv}>
-            <Download className="h-4 w-4 mr-1.5" />
+          <Button variant="outline" size="sm" onClick={handleExportCsv} className="h-8 text-xs">
+            <Download className="h-3.5 w-3.5 mr-1.5" />
             Export CSV
           </Button>
-          <Button onClick={() => navigate('/intake')}>
-            <Plus className="h-4 w-4 mr-1.5" />
+          <Button size="sm" onClick={() => navigate('/intake')} className="h-8 text-xs">
+            <Plus className="h-3.5 w-3.5 mr-1.5" />
             New Trip
           </Button>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex gap-2 flex-wrap items-center">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Search facility, drop-off, appt type…"
-            className="pl-9"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3">
+        <div className="flex gap-2 flex-wrap items-center">
+          <div className="relative flex-1 min-w-[180px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+            <Input
+              placeholder="Search facility, drop-off, appt type…"
+              className="pl-8 h-8 text-xs bg-gray-50"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center gap-1">
+            <Input
+              type="date"
+              className="w-32 h-8 text-xs bg-gray-50"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              title="From"
+            />
+            <span className="text-gray-300 text-sm">–</span>
+            <Input
+              type="date"
+              className="w-32 h-8 text-xs bg-gray-50"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              title="To"
+            />
+          </div>
+
+          <Select value={stateFilter} onValueChange={setStateFilter}>
+            <SelectTrigger className="w-36 h-8 text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {STATE_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value} className="text-xs">{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={facilityFilter} onValueChange={setFacilityFilter}>
+            <SelectTrigger className="w-44 h-8 text-xs"><SelectValue placeholder="All Facilities" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">All Facilities</SelectItem>
+              {facilities.map((f) => <SelectItem key={f.id} value={f.id} className="text-xs">{f.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+
+          <Select value={paySourceFilter} onValueChange={setPaySourceFilter}>
+            <SelectTrigger className="w-40 h-8 text-xs"><SelectValue placeholder="All Pay Sources" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">All Pay Sources</SelectItem>
+              {paySources.map((p) => <SelectItem key={p.id} value={p.id} className="text-xs">{p.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+
+          <button
+            onClick={() => setMissingOnly((v) => !v)}
+            className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-xs font-medium border transition-colors ${
+              missingOnly
+                ? 'bg-amber-50 border-amber-300 text-amber-700'
+                : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
+            }`}
+          >
+            <AlertTriangle className="h-3.5 w-3.5" />
+            Missing Info
+          </button>
+
+          <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
+            <SelectTrigger className="w-36 h-8 text-xs">
+              <ArrowUpDown className="h-3 w-3 mr-1.5 opacity-50" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="trip_date"     className="text-xs">Sort: Trip Date</SelectItem>
+              <SelectItem value="urgency_level" className="text-xs">Sort: Urgency</SelectItem>
+              <SelectItem value="intake_date"   className="text-xs">Sort: Intake Date</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button variant="outline" size="icon" onClick={() => refetch()} className="h-8 w-8 shrink-0">
+            <RefreshCw className="h-3.5 w-3.5" />
+          </Button>
         </div>
-
-        {/* Date range */}
-        <div className="flex items-center gap-1">
-          <Input
-            type="date"
-            className="w-36 text-sm"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            title="Trip date from"
-          />
-          <span className="text-gray-400 text-sm">–</span>
-          <Input
-            type="date"
-            className="w-36 text-sm"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            title="Trip date to"
-          />
-        </div>
-
-        <Select value={stateFilter} onValueChange={setStateFilter}>
-          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {STATE_OPTIONS.map((o) => (
-              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={facilityFilter} onValueChange={setFacilityFilter}>
-          <SelectTrigger className="w-48"><SelectValue placeholder="All Facilities" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Facilities</SelectItem>
-            {facilities.map((f) => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
-
-        <Select value={paySourceFilter} onValueChange={setPaySourceFilter}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="All Pay Sources" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Pay Sources</SelectItem>
-            {paySources.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
-
-        <Button
-          variant={missingOnly ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setMissingOnly((v) => !v)}
-          className={missingOnly ? 'bg-amber-500 hover:bg-amber-600' : ''}
-        >
-          <AlertTriangle className="h-3.5 w-3.5 mr-1.5" />
-          Missing Info
-        </Button>
-
-        <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
-          <SelectTrigger className="w-40">
-            <ArrowUpDown className="h-3.5 w-3.5 mr-1.5 opacity-60" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="trip_date">Sort: Trip Date</SelectItem>
-            <SelectItem value="urgency_level">Sort: Urgency</SelectItem>
-            <SelectItem value="intake_date">Sort: Intake Date</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Button variant="outline" size="icon" onClick={() => refetch()}>
-          <RefreshCw className="h-4 w-4" />
-        </Button>
       </div>
 
+      {/* Table */}
       {isLoading ? (
-        <div className="flex justify-center py-16">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600" />
+        <div className="flex justify-center py-20">
+          <div className="animate-spin rounded-full h-7 w-7 border-2 border-gray-200 border-t-brand-600" />
         </div>
       ) : (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50 text-left">
-                  <th className="px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Trip Date</th>
-                  <th className="px-4 py-3 font-medium text-gray-600">Client</th>
-                  <th className="px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Pick-up Location</th>
-                  <th className="px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Drop-Off Location</th>
-                  <th className="px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Appt Time</th>
-                  <th className="px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Intake Channel</th>
-                  <th className="px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Pay Source</th>
-                  <th className="px-4 py-3 font-medium text-gray-600">Urgency</th>
-                  <th className="px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Appt Type</th>
-                  <th className="px-4 py-3 font-medium text-gray-600">Flag</th>
-                  <th className="px-4 py-3 font-medium text-gray-600">State</th>
-                  <th className="px-4 py-3 font-medium text-gray-600 whitespace-nowrap">Submitted</th>
+                <tr className="border-b border-gray-100 bg-gray-50/70">
+                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Trip Date</th>
+                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Client</th>
+                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Pick-up</th>
+                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Drop-off</th>
+                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Appt</th>
+                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Channel</th>
+                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Pay Source</th>
+                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Urgency</th>
+                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Appt Type</th>
+                  <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide w-8"></th>
+                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">State</th>
+                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Submitted</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-50">
                 {!filtered.length ? (
-                  <tr><td colSpan={12} className="text-center py-12 text-gray-400">No trips found</td></tr>
+                  <tr>
+                    <td colSpan={12} className="text-center py-16 text-gray-400 text-sm">
+                      No trips found
+                    </td>
+                  </tr>
                 ) : filtered.map((trip) => {
-                  const fac = trip.facility_id ? facilityMap[trip.facility_id] : null
-                  const pickupName    = fac?.name ?? null
-                  const pickupAddr    = fac?.address ?? trip.pickup_address ?? null
-                  const dropoffName   = trip.dropoff_location_name ?? null
-                  const dropoffAddr   = trip.dropoff_address ?? null
+                  const fac        = trip.facility_id ? facilityMap[trip.facility_id] : null
+                  const pickupName = fac?.name ?? null
+                  const pickupAddr = fac?.address ?? trip.pickup_address ?? null
+                  const dropoffName= trip.dropoff_location_name ?? null
+                  const dropoffAddr= trip.dropoff_address ?? null
 
                   return (
                     <tr
                       key={trip.id}
-                      className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors"
+                      className="hover:bg-brand-50/40 cursor-pointer transition-colors"
                       onClick={() => navigate(`/trips/${trip.id}`)}
                     >
-                      <td className="px-4 py-3 font-medium whitespace-nowrap">{formatDate(trip.trip_date)}</td>
-                      <td className="px-4 py-3 font-medium text-gray-900 max-w-[140px] truncate">{clientMap[trip.client_id] ?? '—'}</td>
-                      <td className="px-4 py-3 max-w-[180px]">
+                      <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap text-sm">{formatDate(trip.trip_date)}</td>
+                      <td className="px-4 py-3 font-medium text-gray-900 max-w-[130px] truncate text-sm">{clientMap[trip.client_id] ?? '—'}</td>
+                      <td className="px-4 py-3 max-w-[160px]">
                         {pickupName
-                          ? <><div className="font-medium text-gray-900 truncate">{pickupName}</div>
+                          ? <><div className="font-medium text-gray-900 truncate text-sm">{pickupName}</div>
                               {pickupAddr && <div className="text-xs text-gray-400 truncate">{pickupAddr}</div>}</>
                           : <span className="text-gray-500 text-xs">{pickupAddr ?? '—'}</span>
                         }
                       </td>
-                      <td className="px-4 py-3 max-w-[180px]">
+                      <td className="px-4 py-3 max-w-[160px]">
                         {dropoffName
-                          ? <><div className="font-medium text-gray-900 truncate">{dropoffName}</div>
+                          ? <><div className="font-medium text-gray-900 truncate text-sm">{dropoffName}</div>
                               {dropoffAddr && <div className="text-xs text-gray-400 truncate">{dropoffAddr}</div>}</>
                           : <span className="text-gray-500 text-xs">{dropoffAddr ?? '—'}</span>
                         }
                       </td>
-                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{formatTime(trip.appointment_time) ?? '—'}</td>
-                      <td className="px-4 py-3 text-gray-600 capitalize">{INTAKE_CHANNEL_LABELS[trip.intake_channel] ?? trip.intake_channel}</td>
+                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap text-sm">{formatTime(trip.appointment_time) ?? '—'}</td>
+                      <td className="px-4 py-3 text-gray-500 text-xs capitalize">{INTAKE_CHANNEL_LABELS[trip.intake_channel] ?? trip.intake_channel}</td>
                       <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{trip.pay_source_id ? (paySourceMap[trip.pay_source_id] ?? '—') : '—'}</td>
                       <td className="px-4 py-3">
-                        <Badge variant={urgencyBadge(trip.urgency_level)} className="capitalize">
+                        <Badge variant={urgencyBadge(trip.urgency_level)} className="capitalize text-[11px]">
                           {trip.urgency_level}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3 text-gray-600 max-w-[120px] truncate">{trip.appointment_type ?? '—'}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 text-gray-500 text-xs max-w-[110px] truncate">{trip.appointment_type ?? '—'}</td>
+                      <td className="px-4 py-3 text-center">
                         {trip.missing_info_flag && (
-                          <span title="Missing info">
-                            <AlertTriangle className="h-4 w-4 text-amber-500" aria-hidden />
-                          </span>
+                          <AlertTriangle className="h-3.5 w-3.5 text-amber-500 mx-auto" />
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <Badge variant={stateBadge(trip.review_state)} className="capitalize whitespace-nowrap">
+                        <Badge variant={stateBadge(trip.review_state)} className="capitalize whitespace-nowrap text-[11px]">
                           {trip.review_state.replace(/_/g, ' ')}
                         </Badge>
                       </td>
@@ -301,8 +304,8 @@ export function DispatcherQueue() {
               </tbody>
             </table>
           </div>
-          <div className="px-4 py-2 border-t border-gray-100 bg-gray-50 text-xs text-gray-400">
-            {filtered.length} trip{filtered.length !== 1 ? 's' : ''} shown
+          <div className="px-4 py-2 border-t border-gray-100 bg-gray-50/50 text-xs text-gray-400">
+            {filtered.length} trip{filtered.length !== 1 ? 's' : ''}
           </div>
         </div>
       )}

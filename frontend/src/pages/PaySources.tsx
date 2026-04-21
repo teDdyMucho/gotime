@@ -111,65 +111,65 @@ export function PaySources() {
   const isAdmin = user?.role === 'admin'
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Pay Sources</h1>
+    <div className="space-y-5">
+      <div className="flex items-center gap-3 justify-between">
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-36 h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all" className="text-xs">All</SelectItem>
+            <SelectItem value="active" className="text-xs">Active</SelectItem>
+            <SelectItem value="inactive" className="text-xs">Inactive</SelectItem>
+          </SelectContent>
+        </Select>
         {isAdmin && (
-          <Button onClick={openCreate}>
-            <Plus className="h-4 w-4 mr-1.5" />
+          <Button size="sm" onClick={openCreate} className="h-8 text-xs">
+            <Plus className="h-3.5 w-3.5 mr-1.5" />
             Add Pay Source
           </Button>
         )}
       </div>
 
-      <Select value={statusFilter} onValueChange={setStatusFilter}>
-        <SelectTrigger className="w-40">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All</SelectItem>
-          <SelectItem value="active">Active</SelectItem>
-          <SelectItem value="inactive">Inactive</SelectItem>
-        </SelectContent>
-      </Select>
-
       {isLoading ? (
-        <div className="flex justify-center py-16">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600" />
+        <div className="flex justify-center py-20">
+          <div className="animate-spin rounded-full h-7 w-7 border-2 border-gray-200 border-t-brand-600" />
         </div>
       ) : (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Name</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Notes</th>
-                {isAdmin && <th className="px-4 py-3" />}
+              <tr className="border-b border-gray-100 bg-gray-50/70">
+                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Name</th>
+                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Notes</th>
+                {isAdmin && <th className="px-4 py-2.5 w-20" />}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-50">
               {!paySources.length ? (
                 <tr>
-                  <td colSpan={4} className="text-center py-10 text-gray-400">No pay sources found</td>
+                  <td colSpan={4} className="text-center py-14 text-gray-400 text-sm">No pay sources found</td>
                 </tr>
               ) : paySources.map((ps) => (
-                <tr key={ps.id} className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium text-gray-900">{ps.name}</td>
+                <tr key={ps.id} className="hover:bg-gray-50/60 transition-colors">
+                  <td className="px-4 py-3 font-medium text-gray-900 text-sm">{ps.name}</td>
                   <td className="px-4 py-3">
-                    <Badge variant={ps.status === 'active' ? 'accepted' : 'canceled'}>
+                    <Badge variant={ps.status === 'active' ? 'accepted' : 'canceled'} className="text-[11px]">
                       {ps.status}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 text-gray-500 max-w-xs truncate">{ps.notes ?? '—'}</td>
+                  <td className="px-4 py-3 text-gray-500 text-xs max-w-xs truncate">{ps.notes ?? '—'}</td>
                   {isAdmin && (
-                    <td className="px-4 py-3 text-right flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => openEdit(ps)}>
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => setDeleteTarget(ps)}>
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-0.5">
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => openEdit(ps)}>
+                          <Pencil className="h-3.5 w-3.5 text-gray-400" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-red-400 hover:text-red-600 hover:bg-red-50" onClick={() => setDeleteTarget(ps)}>
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </td>
                   )}
                 </tr>

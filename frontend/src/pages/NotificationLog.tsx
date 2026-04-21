@@ -73,86 +73,80 @@ export function NotificationLog() {
   })
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Notification Log</h1>
-        <Button variant="outline" size="icon" onClick={() => refetch()}>
-          <RefreshCw className="h-4 w-4" />
+    <div className="space-y-5">
+      <div className="flex gap-2 flex-wrap items-center justify-between">
+        <div className="flex gap-2">
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="w-40 h-8 text-xs">
+              <SelectValue placeholder="All Types" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">All Types</SelectItem>
+              <SelectItem value="accepted" className="text-xs">Accepted</SelectItem>
+              <SelectItem value="declined" className="text-xs">Declined</SelectItem>
+              <SelectItem value="returned" className="text-xs">Returned</SelectItem>
+              <SelectItem value="canceled" className="text-xs">Canceled</SelectItem>
+              <SelectItem value="completed" className="text-xs">Completed</SelectItem>
+              <SelectItem value="general" className="text-xs">General</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={methodFilter} onValueChange={setMethodFilter}>
+            <SelectTrigger className="w-36 h-8 text-xs">
+              <SelectValue placeholder="All Methods" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">All Methods</SelectItem>
+              <SelectItem value="email" className="text-xs">Email</SelectItem>
+              <SelectItem value="sms" className="text-xs">SMS</SelectItem>
+              <SelectItem value="both" className="text-xs">Both</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Button variant="outline" size="sm" className="h-8 w-8 p-0 shrink-0" onClick={() => refetch()}>
+          <RefreshCw className="h-3.5 w-3.5" />
         </Button>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-2 flex-wrap">
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-44">
-            <SelectValue placeholder="All Types" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="accepted">Accepted</SelectItem>
-            <SelectItem value="declined">Declined</SelectItem>
-            <SelectItem value="returned">Returned</SelectItem>
-            <SelectItem value="canceled">Canceled</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="general">General</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={methodFilter} onValueChange={setMethodFilter}>
-          <SelectTrigger className="w-36">
-            <SelectValue placeholder="All Methods" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Methods</SelectItem>
-            <SelectItem value="email">Email</SelectItem>
-            <SelectItem value="sms">SMS</SelectItem>
-            <SelectItem value="both">Both</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
       {isLoading ? (
-        <div className="flex justify-center py-16">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600" />
+        <div className="flex justify-center py-20">
+          <div className="animate-spin rounded-full h-7 w-7 border-2 border-gray-200 border-t-brand-600" />
         </div>
       ) : (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50 text-left">
-                <th className="px-4 py-3 font-medium text-gray-600">Sent At</th>
-                <th className="px-4 py-3 font-medium text-gray-600">Client</th>
-                <th className="px-4 py-3 font-medium text-gray-600">Trip</th>
-                <th className="px-4 py-3 font-medium text-gray-600">Recipient</th>
-                <th className="px-4 py-3 font-medium text-gray-600">Type</th>
-                <th className="px-4 py-3 font-medium text-gray-600">Method</th>
-                <th className="px-4 py-3 font-medium text-gray-600">Status</th>
-                <th className="px-4 py-3 font-medium text-gray-600">Preview</th>
+              <tr className="border-b border-gray-100 bg-gray-50/70 text-left">
+                <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Sent At</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Client</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Trip</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Recipient</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Type</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Method</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+                <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Preview</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-50">
               {!filtered.length ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-12 text-gray-400">
-                    No notifications found
-                  </td>
+                  <td colSpan={8} className="text-center py-14 text-gray-400 text-sm">No notifications found</td>
                 </tr>
               ) : filtered.map((n) => {
-                const requestor = requestorMap[n.requestor_id]
-                const trip = tripMap[n.trip_id]
-                const rawClientName = trip ? clientMap[trip.client_id] : undefined
-                const maskedClient  = rawClientName ? maskClientName(rawClientName) : null
+                const requestor    = requestorMap[n.requestor_id]
+                const trip         = tripMap[n.trip_id]
+                const rawClientName= trip ? clientMap[trip.client_id] : undefined
+                const maskedClient = rawClientName ? maskClientName(rawClientName) : null
                 return (
-                  <tr key={n.id} className="border-b border-gray-50 hover:bg-gray-50">
-                    <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">
-                      {formatDateTime(n.created_at)}
-                    </td>
+                  <tr key={n.id} className="hover:bg-gray-50/60 transition-colors">
+                    <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">{formatDateTime(n.created_at)}</td>
                     <td className="px-4 py-3 text-xs font-medium text-gray-700">
                       {maskedClient ?? <span className="text-gray-400">—</span>}
                     </td>
                     <td className="px-4 py-3">
                       <button
-                        className="text-brand-600 hover:underline font-mono text-xs"
+                        className="text-brand-600 hover:underline font-medium text-xs"
                         onClick={() => navigate(`/trips/${n.trip_id}`)}
                       >
                         {trip ? `${trip.appointment_type ?? 'Trip'} · ${trip.trip_date}` : n.trip_id}
@@ -161,9 +155,9 @@ export function NotificationLog() {
                     <td className="px-4 py-3">
                       {requestor ? (
                         <div>
-                          <p className="font-medium text-gray-900 text-xs">{requestor.name}</p>
+                          <p className="font-medium text-gray-800 text-xs">{requestor.name}</p>
                           {requestor.title_department && (
-                            <p className="text-xs text-gray-400">{requestor.title_department}</p>
+                            <p className="text-[11px] text-gray-400">{requestor.title_department}</p>
                           )}
                         </div>
                       ) : (
@@ -171,22 +165,22 @@ export function NotificationLog() {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant={TYPE_VARIANT[n.notification_type] ?? 'secondary'} className="capitalize">
+                      <Badge variant={TYPE_VARIANT[n.notification_type] ?? 'secondary'} className="capitalize text-[11px]">
                         {n.notification_type}
                       </Badge>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
                         {methodIcon(n.method)}
-                        <span className="capitalize text-gray-600 text-xs">{n.method}</span>
+                        <span className="capitalize text-gray-500 text-xs">{n.method}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant={STATUS_VARIANT[n.status] ?? 'secondary'} className="capitalize">
+                      <Badge variant={STATUS_VARIANT[n.status] ?? 'secondary'} className="capitalize text-[11px]">
                         {n.status}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 text-gray-500 text-xs max-w-[280px] truncate">
+                    <td className="px-4 py-3 text-gray-400 text-xs max-w-[260px] truncate">
                       {n.message_preview ?? '—'}
                     </td>
                   </tr>
@@ -194,8 +188,8 @@ export function NotificationLog() {
               })}
             </tbody>
           </table>
-          <div className="px-4 py-2 border-t border-gray-100 bg-gray-50 text-xs text-gray-400">
-            {filtered.length} notification{filtered.length !== 1 ? 's' : ''} shown
+          <div className="px-4 py-2 border-t border-gray-100 bg-gray-50/50 text-xs text-gray-400">
+            {filtered.length} notification{filtered.length !== 1 ? 's' : ''}
           </div>
         </div>
       )}
