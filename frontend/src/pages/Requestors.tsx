@@ -242,79 +242,79 @@ export function Requestors() {
           <DialogHeader>
             <DialogTitle>{editing ? 'Edit Requestor' : 'Add Requestor'}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2 space-y-1.5">
-                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Name *</Label>
-                <Input {...register('name')} />
-                {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
-              </div>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="px-6 py-5">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2 space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Name *</Label>
+                  <Input {...register('name')} />
+                  {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Title / Department</Label>
-                <Input {...register('title_department')} />
-              </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Title / Department</Label>
+                  <Input {...register('title_department')} />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Facility *</Label>
-                <Controller name="facility_id" control={control} render={({ field }) => (
-                  <Select value={field.value ?? ''} onValueChange={field.onChange}>
-                    <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
-                    <SelectContent>
-                      {facilities.map((f) => (
-                        <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )} />
-                {errors.facility_id && <p className="text-xs text-red-500">{errors.facility_id.message}</p>}
-              </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Facility *</Label>
+                  <Controller name="facility_id" control={control} render={({ field }) => (
+                    <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                      <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                      <SelectContent>
+                        {facilities.map((f) => (
+                          <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )} />
+                  {errors.facility_id && <p className="text-xs text-red-500">{errors.facility_id.message}</p>}
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Phone</Label>
-                <Input {...register('phone')} />
-              </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Phone</Label>
+                  <Input {...register('phone')} />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Email</Label>
-                <Input {...register('email')} type="email" />
-              </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Email</Label>
+                  <Input {...register('email')} type="email" />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Notification Method</Label>
-                <Controller name="preferred_notification_method" control={control} render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="email">Email</SelectItem>
-                      <SelectItem value="sms">SMS</SelectItem>
-                      <SelectItem value="both">Both</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )} />
-              </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Notification Method</Label>
+                  <Controller name="preferred_notification_method" control={control} render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="email">Email</SelectItem>
+                        <SelectItem value="sms">SMS</SelectItem>
+                        <SelectItem value="both">Both</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )} />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Status</Label>
-                <Controller name="status" control={control} render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )} />
-              </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Status</Label>
+                  <Controller name="status" control={control} render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )} />
+                </div>
 
-              <div className="col-span-2 space-y-1.5">
-                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Notes</Label>
-                <Textarea {...register('notes')} rows={2} className="resize-none" />
+                <div className="col-span-2 space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Notes</Label>
+                  <Textarea {...register('notes')} rows={2} className="resize-none" />
+                </div>
               </div>
+              {apiError && <div className="mt-3 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-600">{apiError}</div>}
             </div>
-
-            {apiError && <p className="text-sm text-red-500">{apiError}</p>}
-
             <DialogFooter>
               <Button type="button" variant="outline" size="sm" onClick={closeDialog}>Cancel</Button>
               <Button type="submit" size="sm" disabled={isSubmitting}>
@@ -331,19 +331,23 @@ export function Requestors() {
             <DialogTitle>{apiError ? 'Cannot Delete Requestor' : 'Delete Requestor'}</DialogTitle>
           </DialogHeader>
           {apiError ? (
-            <div className="space-y-3">
-              <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 space-y-2">
-                <p className="font-semibold">{deleteTarget?.name} cannot be deleted</p>
-                <p>{apiError}</p>
-                <p className="text-xs text-amber-600">To delete this requestor, first reassign or remove all linked trips.</p>
+            <>
+              <div className="px-6 py-5">
+                <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 space-y-1.5">
+                  <p className="font-semibold">{deleteTarget?.name} cannot be deleted</p>
+                  <p>{apiError}</p>
+                  <p className="text-xs text-amber-600">To delete this requestor, first reassign or remove all linked trips.</p>
+                </div>
               </div>
               <DialogFooter>
                 <Button size="sm" className="w-full" onClick={() => { setDeleteTarget(null); setApiError(null) }}>Got it</Button>
               </DialogFooter>
-            </div>
+            </>
           ) : (
             <>
-              <p className="text-sm text-gray-600">Are you sure you want to delete <strong>{deleteTarget?.name}</strong>? This cannot be undone.</p>
+              <div className="px-6 py-5">
+                <p className="text-sm text-gray-600">Are you sure you want to delete <strong>{deleteTarget?.name}</strong>? This cannot be undone.</p>
+              </div>
               <DialogFooter>
                 <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)}>Cancel</Button>
                 <Button variant="destructive" size="sm" onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)} disabled={deleteMutation.isPending}>

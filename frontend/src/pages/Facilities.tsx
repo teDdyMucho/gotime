@@ -186,73 +186,73 @@ export function Facilities() {
           <DialogHeader>
             <DialogTitle>{editing ? 'Edit Facility' : 'Add Facility'}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2 space-y-1.5">
-                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Name *</Label>
-                <Input {...register('name')} />
-                {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
-              </div>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="px-6 py-5">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2 space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Name *</Label>
+                  <Input {...register('name')} />
+                  {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Type</Label>
-                <Controller name="facility_type" control={control} render={({ field }) => (
-                  <Select value={field.value ?? ''} onValueChange={field.onChange}>
-                    <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
-                    <SelectContent>
-                      {['hospital', 'clinic', 'SNF', 'home_health', 'other'].map((v) => (
-                        <SelectItem key={v} value={v} className="capitalize">{v.replace(/_/g, ' ')}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )} />
-              </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Type</Label>
+                  <Controller name="facility_type" control={control} render={({ field }) => (
+                    <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                      <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                      <SelectContent>
+                        {['hospital', 'clinic', 'SNF', 'home_health', 'other'].map((v) => (
+                          <SelectItem key={v} value={v} className="capitalize">{v.replace(/_/g, ' ')}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )} />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Status</Label>
-                <Controller name="status" control={control} render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )} />
-              </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Status</Label>
+                  <Controller name="status" control={control} render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )} />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Phone</Label>
-                <Input {...register('phone')} />
-              </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Phone</Label>
+                  <Input {...register('phone')} />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Email</Label>
-                <Input {...register('email')} type="email" />
-                {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
-              </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Email</Label>
+                  <Input {...register('email')} type="email" />
+                  {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+                </div>
 
-              <div className="col-span-2 space-y-1.5">
-                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Address</Label>
-                <Input {...register('address')} />
-              </div>
+                <div className="col-span-2 space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Address</Label>
+                  <Input {...register('address')} />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Internal Notes</Label>
-                <Textarea {...register('internal_notes')} rows={2} className="resize-none" />
-              </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Internal Notes</Label>
+                  <Textarea {...register('internal_notes')} rows={2} className="resize-none" />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Account Notes</Label>
-                <Textarea {...register('account_notes')} rows={2} className="resize-none" />
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Account Notes</Label>
+                  <Textarea {...register('account_notes')} rows={2} className="resize-none" />
+                </div>
               </div>
+              {apiError && <div className="mt-3 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-600">{apiError}</div>}
             </div>
-
-            {apiError && <p className="text-sm text-red-500">{apiError}</p>}
-
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={closeDialog}>Cancel</Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="button" variant="outline" size="sm" onClick={closeDialog}>Cancel</Button>
+              <Button type="submit" size="sm" disabled={isSubmitting}>
                 {isSubmitting ? 'Saving…' : editing ? 'Save Changes' : 'Create'}
               </Button>
             </DialogFooter>
@@ -260,29 +260,32 @@ export function Facilities() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete confirm */}
       <Dialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) { setDeleteTarget(null); setApiError(null) } }}>
         <DialogContent className="max-w-sm" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>{apiError ? 'Cannot Delete Facility' : 'Delete Facility'}</DialogTitle>
           </DialogHeader>
           {apiError ? (
-            <div className="space-y-3">
-              <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 space-y-2">
-                <p className="font-semibold">⚠ {deleteTarget?.name} cannot be deleted</p>
-                <p>{apiError}</p>
-                <p className="text-xs text-amber-600">To delete this facility, first reassign or remove all linked requestors and trips.</p>
+            <>
+              <div className="px-6 py-5">
+                <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 space-y-1.5">
+                  <p className="font-semibold">{deleteTarget?.name} cannot be deleted</p>
+                  <p>{apiError}</p>
+                  <p className="text-xs text-amber-600">To delete this facility, first reassign or remove all linked requestors and trips.</p>
+                </div>
               </div>
               <DialogFooter>
-                <Button className="w-full" onClick={() => { setDeleteTarget(null); setApiError(null) }}>Got it</Button>
+                <Button size="sm" className="w-full" onClick={() => { setDeleteTarget(null); setApiError(null) }}>Got it</Button>
               </DialogFooter>
-            </div>
+            </>
           ) : (
             <>
-              <p className="text-sm text-gray-600">Are you sure you want to delete <strong>{deleteTarget?.name}</strong>? This cannot be undone.</p>
+              <div className="px-6 py-5">
+                <p className="text-sm text-gray-600">Are you sure you want to delete <strong>{deleteTarget?.name}</strong>? This cannot be undone.</p>
+              </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
-                <Button variant="destructive" onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)} disabled={deleteMutation.isPending}>
+                <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+                <Button variant="destructive" size="sm" onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)} disabled={deleteMutation.isPending}>
                   {deleteMutation.isPending ? 'Deleting…' : 'Delete'}
                 </Button>
               </DialogFooter>

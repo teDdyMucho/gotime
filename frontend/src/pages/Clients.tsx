@@ -206,87 +206,79 @@ export function Clients() {
           <DialogHeader>
             <DialogTitle>{editing ? 'Edit Client' : 'Add Client'}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2 space-y-1.5">
-                <Label>Full Name *</Label>
-                <Input {...register('full_name')} />
-                {errors.full_name && <p className="text-xs text-red-500">{errors.full_name.message}</p>}
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="px-6 py-5">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2 space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Full Name *</Label>
+                  <Input {...register('full_name')} />
+                  {errors.full_name && <p className="text-xs text-red-500">{errors.full_name.message}</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Date of Birth</Label>
+                  <Input type="date" {...register('date_of_birth')} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Phone</Label>
+                  <Input {...register('phone')} />
+                </div>
+                <div className="col-span-2 space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Primary Address</Label>
+                  <Input {...register('primary_address')} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Mobility Level</Label>
+                  <Controller name="mobility_level" control={control} render={({ field }) => (
+                    <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                      <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                      <SelectContent>
+                        {['ambulatory', 'wheelchair', 'stretcher', 'other'].map((v) => (
+                          <SelectItem key={v} value={v} className="capitalize">{v}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Primary Facility</Label>
+                  <Controller name="primary_facility_id" control={control} render={({ field }) => (
+                    <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                      <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+                      <SelectContent>
+                        {facilities.map((f) => (
+                          <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )} />
+                </div>
+                <div className="col-span-2 space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Default Pay Source</Label>
+                  <Controller name="default_pay_source_id" control={control} render={({ field }) => (
+                    <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                      <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+                      <SelectContent>
+                        {paySources.map((p) => (
+                          <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Special Assistance Notes</Label>
+                  <Textarea {...register('special_assistance_notes')} rows={2} className="resize-none" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Recurring Notes</Label>
+                  <Textarea {...register('recurring_notes')} rows={2} className="resize-none" />
+                </div>
               </div>
-
-              <div className="space-y-1.5">
-                <Label>Date of Birth</Label>
-                <Input type="date" {...register('date_of_birth')} />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>Phone</Label>
-                <Input {...register('phone')} />
-              </div>
-
-              <div className="col-span-2 space-y-1.5">
-                <Label>Primary Address</Label>
-                <Input {...register('primary_address')} />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>Mobility Level</Label>
-                <Controller name="mobility_level" control={control} render={({ field }) => (
-                  <Select value={field.value ?? ''} onValueChange={field.onChange}>
-                    <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
-                    <SelectContent>
-                      {['ambulatory', 'wheelchair', 'stretcher', 'other'].map((v) => (
-                        <SelectItem key={v} value={v} className="capitalize">{v}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )} />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>Primary Facility</Label>
-                <Controller name="primary_facility_id" control={control} render={({ field }) => (
-                  <Select value={field.value ?? ''} onValueChange={field.onChange}>
-                    <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
-                    <SelectContent>
-                      {facilities.map((f) => (
-                        <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )} />
-              </div>
-
-              <div className="col-span-2 space-y-1.5">
-                <Label>Default Pay Source</Label>
-                <Controller name="default_pay_source_id" control={control} render={({ field }) => (
-                  <Select value={field.value ?? ''} onValueChange={field.onChange}>
-                    <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
-                    <SelectContent>
-                      {paySources.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )} />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>Special Assistance Notes</Label>
-                <Textarea {...register('special_assistance_notes')} rows={2} />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>Recurring Notes</Label>
-                <Textarea {...register('recurring_notes')} rows={2} />
-              </div>
+              {apiError && <div className="mt-3 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-600">{apiError}</div>}
             </div>
-
-            {apiError && <p className="text-sm text-red-500">{apiError}</p>}
-
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={closeDialog}>Cancel</Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="button" variant="outline" size="sm" onClick={closeDialog}>Cancel</Button>
+              <Button type="submit" size="sm" disabled={isSubmitting}>
                 {isSubmitting ? 'Saving…' : editing ? 'Save Changes' : 'Create'}
               </Button>
             </DialogFooter>
@@ -300,22 +292,26 @@ export function Clients() {
             <DialogTitle>{apiError ? 'Cannot Delete Client' : 'Delete Client'}</DialogTitle>
           </DialogHeader>
           {apiError ? (
-            <div className="space-y-3">
-              <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 space-y-2">
-                <p className="font-semibold">⚠ {deleteTarget?.full_name} cannot be deleted</p>
-                <p>{apiError}</p>
-                <p className="text-xs text-amber-600">To delete this client, first remove all linked trips.</p>
+            <>
+              <div className="px-6 py-5">
+                <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 space-y-1.5">
+                  <p className="font-semibold">{deleteTarget?.full_name} cannot be deleted</p>
+                  <p>{apiError}</p>
+                  <p className="text-xs text-amber-600">Remove all linked trips first.</p>
+                </div>
               </div>
               <DialogFooter>
-                <Button className="w-full" onClick={() => { setDeleteTarget(null); setApiError(null) }}>Got it</Button>
+                <Button size="sm" className="w-full" onClick={() => { setDeleteTarget(null); setApiError(null) }}>Got it</Button>
               </DialogFooter>
-            </div>
+            </>
           ) : (
             <>
-              <p className="text-sm text-gray-600">Are you sure you want to delete <strong>{deleteTarget?.full_name}</strong>? This cannot be undone.</p>
+              <div className="px-6 py-5">
+                <p className="text-sm text-gray-600">Are you sure you want to delete <strong>{deleteTarget?.full_name}</strong>? This cannot be undone.</p>
+              </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
-                <Button variant="destructive" onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)} disabled={deleteMutation.isPending}>
+                <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+                <Button variant="destructive" size="sm" onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)} disabled={deleteMutation.isPending}>
                   {deleteMutation.isPending ? 'Deleting…' : 'Delete'}
                 </Button>
               </DialogFooter>

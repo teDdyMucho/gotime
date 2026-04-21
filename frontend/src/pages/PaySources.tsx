@@ -184,36 +184,34 @@ export function PaySources() {
           <DialogHeader>
             <DialogTitle>{editing ? 'Edit Pay Source' : 'Add Pay Source'}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label>Name *</Label>
-              <Input {...register('name')} placeholder="e.g. Medicaid, Medicare, Private Pay" />
-              {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="px-6 py-5 space-y-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Name *</Label>
+                <Input {...register('name')} placeholder="e.g. Medicaid, Medicare, Private Pay" />
+                {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</Label>
+                <Controller name="status" control={control} render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Notes</Label>
+                <Textarea {...register('notes')} rows={3} placeholder="Optional notes…" className="resize-none" />
+              </div>
+              {apiError && <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-600">{apiError}</div>}
             </div>
-
-            <div className="space-y-1.5">
-              <Label>Status</Label>
-              <Controller name="status" control={control} render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              )} />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>Notes</Label>
-              <Textarea {...register('notes')} rows={2} placeholder="Optional notes…" />
-            </div>
-
-            {apiError && <p className="text-sm text-red-500">{apiError}</p>}
-
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={closeDialog}>Cancel</Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="button" variant="outline" size="sm" onClick={closeDialog}>Cancel</Button>
+              <Button type="submit" size="sm" disabled={isSubmitting}>
                 {isSubmitting ? 'Saving…' : editing ? 'Save Changes' : 'Create'}
               </Button>
             </DialogFooter>
@@ -227,22 +225,26 @@ export function PaySources() {
             <DialogTitle>{apiError ? 'Cannot Delete Pay Source' : 'Delete Pay Source'}</DialogTitle>
           </DialogHeader>
           {apiError ? (
-            <div className="space-y-3">
-              <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 space-y-2">
-                <p className="font-semibold">⚠ {deleteTarget?.name} cannot be deleted</p>
-                <p>{apiError}</p>
-                <p className="text-xs text-amber-600">To delete this pay source, first remove all linked trips and clients.</p>
+            <>
+              <div className="px-6 py-5">
+                <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800 space-y-1.5">
+                  <p className="font-semibold">{deleteTarget?.name} cannot be deleted</p>
+                  <p>{apiError}</p>
+                  <p className="text-xs text-amber-600">Remove all linked trips and clients first.</p>
+                </div>
               </div>
               <DialogFooter>
-                <Button className="w-full" onClick={() => { setDeleteTarget(null); setApiError(null) }}>Got it</Button>
+                <Button size="sm" className="w-full" onClick={() => { setDeleteTarget(null); setApiError(null) }}>Got it</Button>
               </DialogFooter>
-            </div>
+            </>
           ) : (
             <>
-              <p className="text-sm text-gray-600">Are you sure you want to delete <strong>{deleteTarget?.name}</strong>? This cannot be undone.</p>
+              <div className="px-6 py-5">
+                <p className="text-sm text-gray-600">Are you sure you want to delete <strong>{deleteTarget?.name}</strong>? This cannot be undone.</p>
+              </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
-                <Button variant="destructive" onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)} disabled={deleteMutation.isPending}>
+                <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+                <Button variant="destructive" size="sm" onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)} disabled={deleteMutation.isPending}>
                   {deleteMutation.isPending ? 'Deleting…' : 'Delete'}
                 </Button>
               </DialogFooter>
