@@ -16,7 +16,8 @@ import { Plus, Pencil, Search, Trash2 } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 
 const schema = z.object({
-  full_name: z.string().min(1, 'Full name is required'),
+  first_name: z.string().min(1, 'First name is required'),
+  last_name: z.string().min(1, 'Last name is required'),
   date_of_birth: z.string().optional(),
   phone: z.string().optional(),
   primary_address: z.string().optional(),
@@ -98,7 +99,8 @@ export function Clients() {
   function openEdit(c: Client) {
     setEditing(c)
     reset({
-      full_name: c.full_name,
+      first_name: c.first_name ?? c.full_name.split(' ')[0],
+      last_name: c.last_name ?? c.full_name.split(' ').slice(1).join(' '),
       date_of_birth: c.date_of_birth ?? undefined,
       phone: c.phone ?? undefined,
       primary_address: c.primary_address ?? undefined,
@@ -121,6 +123,7 @@ export function Clients() {
     setApiError(null)
     const payload = {
       ...data,
+      full_name: `${data.first_name} ${data.last_name}`.trim(),
       default_pay_source_id: data.default_pay_source_id || undefined,
       primary_facility_id: data.primary_facility_id || undefined,
     }
@@ -209,10 +212,15 @@ export function Clients() {
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="px-6 py-5">
               <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2 space-y-1.5">
-                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Full Name *</Label>
-                  <Input {...register('full_name')} />
-                  {errors.full_name && <p className="text-xs text-red-500">{errors.full_name.message}</p>}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">First Name *</Label>
+                  <Input {...register('first_name')} />
+                  {errors.first_name && <p className="text-xs text-red-500">{errors.first_name.message}</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Last Name *</Label>
+                  <Input {...register('last_name')} />
+                  {errors.last_name && <p className="text-xs text-red-500">{errors.last_name.message}</p>}
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Date of Birth</Label>

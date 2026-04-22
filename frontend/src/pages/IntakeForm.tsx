@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Combobox } from '@/components/ui/combobox'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Plus, Trash2 } from 'lucide-react'
+import { formatDate } from '@/lib/utils'
 
 const schema = z.object({
   intake_channel: z.enum(['phone', 'email', 'fax', 'portal', 'internal']),
@@ -245,7 +246,7 @@ export function IntakeForm() {
 
   const clientOptions = clients.map((c) => ({
     value: c.id, label: c.full_name,
-    sublabel: c.date_of_birth ? `DOB: ${c.date_of_birth}` : undefined,
+    sublabel: c.date_of_birth ? `DOB: ${formatDate(c.date_of_birth)}` : undefined,
   }))
 
   async function onSubmit(data: FormData) {
@@ -347,7 +348,7 @@ export function IntakeForm() {
             </Field>
 
             <Field label="Date of Birth">
-              <Input readOnly value={selectedClient?.date_of_birth ?? ''}
+              <Input readOnly value={selectedClient?.date_of_birth ? formatDate(selectedClient.date_of_birth) : ''}
                 placeholder="Auto-filled from client" className="bg-gray-50 text-gray-500" />
             </Field>
 

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
 import { Check, ChevronDown, X } from 'lucide-react'
 
@@ -29,7 +30,9 @@ export function Combobox({
 }: ComboboxProps) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({})
   const inputRef = useRef<HTMLInputElement>(null)
+  const triggerRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const selected = options.find((o) => o.value === value)
@@ -47,8 +50,24 @@ export function Combobox({
   }, [open])
 
   useEffect(() => {
+    if (open && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect()
+      setDropdownStyle({
+        position: 'fixed',
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+        zIndex: 9999,
+      })
+    }
+  }, [open])
+
+  useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current && !containerRef.current.contains(e.target as Node) &&
+        !(e.target as Element).closest('[data-combobox-dropdown]')
+      ) {
         setOpen(false)
       }
     }
@@ -64,9 +83,51 @@ export function Combobox({
     }
   }
 
+  const dropdown = open ? createPortal(
+    <div
+      data-combobox-dropdown
+      style={dropdownStyle}
+      className="rounded-md border bg-white shadow-lg max-h-60 overflow-auto"
+    >
+      {!filtered.length ? (
+        <div className="py-4 text-center text-sm text-muted-foreground">{emptyText}</div>
+      ) : (
+        filtered.map((opt) => (
+          <div
+            key={opt.value}
+            className={cn(
+              'flex items-start gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-gray-50',
+              opt.value === value && 'bg-gray-50'
+            )}
+            onMouseDown={(e) => {
+              e.preventDefault()
+              onChange(opt.value)
+              setOpen(false)
+            }}
+          >
+            <Check
+              className={cn(
+                'h-4 w-4 mt-0.5 shrink-0 text-brand-600',
+                opt.value === value ? 'opacity-100' : 'opacity-0'
+              )}
+            />
+            <div className="min-w-0">
+              <div className="truncate">{opt.label}</div>
+              {opt.sublabel && (
+                <div className="text-xs text-muted-foreground truncate">{opt.sublabel}</div>
+              )}
+            </div>
+          </div>
+        ))
+      )}
+    </div>,
+    document.body
+  ) : null
+
   return (
     <div ref={containerRef} className={cn('relative', className)}>
       <div
+        ref={triggerRef}
         className={cn(
           'flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm cursor-pointer transition-colors',
           'hover:border-gray-400',
@@ -112,41 +173,7 @@ export function Combobox({
         </div>
       </div>
 
-      {open && (
-        <div className="absolute z-50 mt-1 w-full min-w-[200px] rounded-md border bg-white shadow-lg max-h-60 overflow-auto">
-          {!filtered.length ? (
-            <div className="py-4 text-center text-sm text-muted-foreground">{emptyText}</div>
-          ) : (
-            filtered.map((opt) => (
-              <div
-                key={opt.value}
-                className={cn(
-                  'flex items-start gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-gray-50',
-                  opt.value === value && 'bg-gray-50'
-                )}
-                onMouseDown={(e) => {
-                  e.preventDefault()
-                  onChange(opt.value)
-                  setOpen(false)
-                }}
-              >
-                <Check
-                  className={cn(
-                    'h-4 w-4 mt-0.5 shrink-0 text-brand-600',
-                    opt.value === value ? 'opacity-100' : 'opacity-0'
-                  )}
-                />
-                <div className="min-w-0">
-                  <div className="truncate">{opt.label}</div>
-                  {opt.sublabel && (
-                    <div className="text-xs text-muted-foreground truncate">{opt.sublabel}</div>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
+      {dropdown}
     </div>
   )
 }
