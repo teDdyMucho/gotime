@@ -88,8 +88,8 @@ type QuickFacilityForm = z.infer<typeof quickFacilitySchema>
 
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="px-5 py-3.5 border-b border-gray-100">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+      <div className="px-5 py-3.5 border-b border-gray-100 rounded-t-xl">
         <p className="text-sm font-semibold text-gray-700">{title}</p>
       </div>
       <div className="px-5 py-5">{children}</div>
