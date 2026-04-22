@@ -267,7 +267,7 @@ export function IntakeForm() {
   }
 
   return (
-    <div className="max-w-4xl space-y-4">
+    <div className="max-w-4xl space-y-4 pb-10">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
         {/* Intake Information */}
