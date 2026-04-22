@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
 import { Check, ChevronDown, X } from 'lucide-react'
@@ -30,7 +30,7 @@ export function Combobox({
 }: ComboboxProps) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
-  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({})
+  const [rect, setRect] = useState<DOMRect | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const triggerRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -45,22 +45,22 @@ export function Combobox({
       )
     : options
 
-  useEffect(() => {
-    if (!open) setQuery('')
-  }, [open])
+  const updateRect = useCallback(() => {
+    if (triggerRef.current) {
+      setRect(triggerRef.current.getBoundingClientRect())
+    }
+  }, [])
 
   useEffect(() => {
-    if (open && triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect()
-      setDropdownStyle({
-        position: 'fixed',
-        top: rect.bottom + 4,
-        left: rect.left,
-        width: rect.width,
-        zIndex: 9999,
-      })
+    if (!open) { setQuery(''); return }
+    updateRect()
+    window.addEventListener('scroll', updateRect, true)
+    window.addEventListener('resize', updateRect)
+    return () => {
+      window.removeEventListener('scroll', updateRect, true)
+      window.removeEventListener('resize', updateRect)
     }
-  }, [open])
+  }, [open, updateRect])
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -83,10 +83,16 @@ export function Combobox({
     }
   }
 
-  const dropdown = open ? createPortal(
+  const dropdown = open && rect ? createPortal(
     <div
       data-combobox-dropdown
-      style={dropdownStyle}
+      style={{
+        position: 'fixed',
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+        zIndex: 9999,
+      }}
       className="rounded-md border bg-white shadow-lg max-h-60 overflow-auto"
     >
       {!filtered.length ? (
