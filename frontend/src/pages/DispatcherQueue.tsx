@@ -109,23 +109,24 @@ export function DispatcherQueue() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           {pendingCount > 0 && (
-            <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700 border border-amber-200">
-              {pendingCount} pending
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-xs font-semibold text-amber-700">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+              {pendingCount} pending review
             </span>
           )}
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleExportCsv} className="h-8 text-xs">
-            <Download className="h-3.5 w-3.5 mr-1.5" />
+          <Button variant="outline" size="sm" onClick={handleExportCsv} className="h-8 text-xs gap-1.5">
+            <Download className="h-3.5 w-3.5" />
             Export CSV
           </Button>
-          <Button size="sm" onClick={() => navigate('/intake')} className="h-8 text-xs">
-            <Plus className="h-3.5 w-3.5 mr-1.5" />
+          <Button size="sm" onClick={() => navigate('/intake')} className="h-8 text-xs gap-1.5">
+            <Plus className="h-3.5 w-3.5" />
             New Trip
           </Button>
         </div>
@@ -227,25 +228,25 @@ export function DispatcherQueue() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/70">
-                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Trip Date</th>
-                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Client</th>
-                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Pick-up</th>
-                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Drop-off</th>
-                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Appt</th>
-                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Channel</th>
-                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Pay Source</th>
-                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Urgency</th>
-                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Appt Type</th>
-                  <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide w-8"></th>
-                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">State</th>
-                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">Submitted</th>
+                <tr className="border-b border-gray-100 bg-gray-50">
+                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Trip Date</th>
+                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Client</th>
+                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Pick-up</th>
+                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Drop-off</th>
+                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Appt Time</th>
+                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Channel</th>
+                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Pay Source</th>
+                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Urgency</th>
+                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Appt Type</th>
+                  <th className="px-4 py-3 text-center text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-8"></th>
+                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">State</th>
+                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Submitted</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {!filtered.length ? (
                   <tr>
-                    <td colSpan={12} className="text-center py-16 text-gray-400 text-sm">
+                    <td colSpan={12} className="text-center py-20 text-gray-400 text-sm">
                       No trips found
                     </td>
                   </tr>
@@ -255,57 +256,61 @@ export function DispatcherQueue() {
                   const pickupAddr = fac?.address ?? trip.pickup_address ?? null
                   const dropoffName= trip.dropoff_location_name ?? null
                   const dropoffAddr= trip.dropoff_address ?? null
+                  const isPending  = trip.review_state === 'pending'
 
                   return (
                     <tr
                       key={trip.id}
-                      className="hover:bg-brand-50/40 cursor-pointer transition-colors"
+                      className={`group cursor-pointer transition-colors duration-100 ${isPending ? 'bg-amber-50/30 hover:bg-amber-50/60' : 'hover:bg-gray-50'}`}
                       onClick={() => navigate(`/trips/${trip.id}`)}
                     >
-                      <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap text-sm">{formatDate(trip.trip_date)}</td>
-                      <td className="px-4 py-3 font-medium text-gray-900 max-w-[130px] truncate text-sm">{clientMap[trip.client_id] ?? '—'}</td>
-                      <td className="px-4 py-3 max-w-[160px]">
+                      <td className="px-4 py-3.5 whitespace-nowrap">
+                        <span className="font-semibold text-gray-900 text-sm">{formatDate(trip.trip_date)}</span>
+                      </td>
+                      <td className="px-4 py-3.5 font-medium text-gray-800 max-w-[140px] truncate text-sm">{clientMap[trip.client_id] ?? '—'}</td>
+                      <td className="px-4 py-3.5 max-w-[160px]">
                         {pickupName
-                          ? <><div className="font-medium text-gray-900 truncate text-sm">{pickupName}</div>
-                              {pickupAddr && <div className="text-xs text-gray-400 truncate">{pickupAddr}</div>}</>
-                          : <span className="text-gray-500 text-xs">{pickupAddr ?? '—'}</span>
+                          ? <><div className="font-medium text-gray-800 truncate text-sm leading-tight">{pickupName}</div>
+                              {pickupAddr && <div className="text-[11px] text-gray-400 truncate mt-0.5">{pickupAddr}</div>}</>
+                          : <span className="text-gray-400 text-xs">{pickupAddr ?? '—'}</span>
                         }
                       </td>
-                      <td className="px-4 py-3 max-w-[160px]">
+                      <td className="px-4 py-3.5 max-w-[160px]">
                         {dropoffName
-                          ? <><div className="font-medium text-gray-900 truncate text-sm">{dropoffName}</div>
-                              {dropoffAddr && <div className="text-xs text-gray-400 truncate">{dropoffAddr}</div>}</>
-                          : <span className="text-gray-500 text-xs">{dropoffAddr ?? '—'}</span>
+                          ? <><div className="font-medium text-gray-800 truncate text-sm leading-tight">{dropoffName}</div>
+                              {dropoffAddr && <div className="text-[11px] text-gray-400 truncate mt-0.5">{dropoffAddr}</div>}</>
+                          : <span className="text-gray-400 text-xs">{dropoffAddr ?? '—'}</span>
                         }
                       </td>
-                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap text-sm">{formatTime(trip.appointment_time) ?? '—'}</td>
-                      <td className="px-4 py-3 text-gray-500 text-xs capitalize">{INTAKE_CHANNEL_LABELS[trip.intake_channel] ?? trip.intake_channel}</td>
-                      <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{trip.pay_source_id ? (paySourceMap[trip.pay_source_id] ?? '—') : '—'}</td>
-                      <td className="px-4 py-3">
-                        <Badge variant={urgencyBadge(trip.urgency_level)} className="capitalize text-[11px]">
+                      <td className="px-4 py-3.5 text-gray-700 whitespace-nowrap text-sm font-medium">{formatTime(trip.appointment_time) ?? '—'}</td>
+                      <td className="px-4 py-3.5 text-gray-500 text-xs capitalize">{INTAKE_CHANNEL_LABELS[trip.intake_channel] ?? trip.intake_channel}</td>
+                      <td className="px-4 py-3.5 text-gray-500 text-xs whitespace-nowrap">{trip.pay_source_id ? (paySourceMap[trip.pay_source_id] ?? '—') : '—'}</td>
+                      <td className="px-4 py-3.5">
+                        <Badge variant={urgencyBadge(trip.urgency_level)} className="capitalize">
                           {trip.urgency_level}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3 text-gray-500 text-xs max-w-[110px] truncate">{trip.appointment_type ?? '—'}</td>
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-4 py-3.5 text-gray-500 text-xs max-w-[110px] truncate">{trip.appointment_type ?? '—'}</td>
+                      <td className="px-4 py-3.5 text-center">
                         {trip.missing_info_flag && (
                           <AlertTriangle className="h-3.5 w-3.5 text-amber-500 mx-auto" />
                         )}
                       </td>
-                      <td className="px-4 py-3">
-                        <Badge variant={stateBadge(trip.review_state)} className="capitalize whitespace-nowrap text-[11px]">
+                      <td className="px-4 py-3.5">
+                        <Badge variant={stateBadge(trip.review_state)} className="capitalize whitespace-nowrap">
                           {trip.review_state.replace(/_/g, ' ')}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">{formatDate(trip.intake_date)}</td>
+                      <td className="px-4 py-3.5 text-gray-400 text-xs whitespace-nowrap">{formatDate(trip.intake_date)}</td>
                     </tr>
                   )
                 })}
               </tbody>
             </table>
           </div>
-          <div className="px-4 py-2 border-t border-gray-100 bg-gray-50/50 text-xs text-gray-400">
-            {filtered.length} trip{filtered.length !== 1 ? 's' : ''}
+          <div className="px-4 py-2.5 border-t border-gray-100 bg-gray-50/60 flex items-center justify-between">
+            <span className="text-xs text-gray-400">{filtered.length} trip{filtered.length !== 1 ? 's' : ''}</span>
+            <span className="text-xs text-gray-300">Click any row to view details</span>
           </div>
         </div>
       )}
