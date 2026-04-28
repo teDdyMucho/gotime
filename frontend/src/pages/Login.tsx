@@ -147,84 +147,109 @@ export function Login() {
       </div>
 
       {/* ── Right panel ── */}
-      <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 px-6 py-12">
+      <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden px-6 py-12"
+        style={{ background: 'linear-gradient(135deg, #0f172a 0%, #0d1f17 50%, #0f172a 100%)' }}
+      >
+        {/* Subtle orb behind form */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] rounded-full bg-brand-600/8 blur-[140px] pointer-events-none" />
+
         {/* Mobile logo */}
         <div className="flex items-center gap-2.5 mb-10 lg:hidden">
           <div className="h-9 w-9 rounded-xl bg-brand-600 flex items-center justify-center">
-            <Truck className="h-4.5 w-4.5 text-white" style={{ height: '18px', width: '18px' }} />
+            <Truck className="h-[18px] w-[18px] text-white" />
           </div>
-          <span className="text-lg font-bold text-gray-900 tracking-tight">GoTime</span>
+          <span className="text-lg font-bold text-white tracking-tight">GoTime</span>
         </div>
 
-        <div className="w-full max-w-[400px]">
+        <div className="relative z-10 w-full max-w-[400px]">
 
           {/* ── Credentials step ── */}
           {step === 'credentials' && (
             <div>
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Welcome back</h2>
-                <p className="mt-1 text-sm text-gray-500">Sign in to your GoTime account to continue</p>
+              <div className="mb-7">
+                <h2 className="text-2xl font-bold text-white tracking-tight">Welcome back</h2>
+                <p className="mt-1.5 text-sm text-white/40">Sign in to your GoTime account to continue</p>
               </div>
 
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+              {/* Card */}
+              <div
+                className="rounded-2xl overflow-hidden"
+                style={{
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.09)',
+                  boxShadow: '0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)',
+                  backdropFilter: 'blur(20px)',
+                }}
+              >
                 <form onSubmit={handleSubmit(onSubmit)}>
                   <div className="p-6 space-y-5">
 
                     <div className="space-y-1.5">
-                      <Label htmlFor="email" className="text-xs font-semibold text-gray-500 uppercase tracking-widest">
+                      <Label htmlFor="email" className="text-[11px] font-semibold text-white/40 uppercase tracking-widest">
                         Email Address
                       </Label>
-                      <Input
+                      <input
                         id="email"
                         type="email"
                         placeholder="you@gotime.com"
                         autoComplete="email"
-                        className="h-11 bg-gray-50/80 border-gray-200 focus:bg-white text-sm"
+                        className="w-full h-11 rounded-xl px-3.5 text-sm text-white placeholder:text-white/20 outline-none transition-all"
+                        style={{
+                          background: 'rgba(255,255,255,0.06)',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                        }}
+                        onFocus={(e) => { e.currentTarget.style.border = '1px solid rgba(26,122,60,0.7)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(26,122,60,0.15)' }}
+                        onBlur={(e) => { e.currentTarget.style.border = '1px solid rgba(255,255,255,0.1)'; e.currentTarget.style.boxShadow = 'none' }}
                         {...register('email')}
                       />
                       {errors.email && (
-                        <p className="text-xs text-red-500 flex items-center gap-1">
-                          <span className="h-1 w-1 rounded-full bg-red-500 inline-block" />
+                        <p className="text-xs text-red-400 flex items-center gap-1.5">
+                          <span className="h-1 w-1 rounded-full bg-red-400 inline-block shrink-0" />
                           {errors.email.message}
                         </p>
                       )}
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label htmlFor="password" className="text-xs font-semibold text-gray-500 uppercase tracking-widest">
+                      <Label htmlFor="password" className="text-[11px] font-semibold text-white/40 uppercase tracking-widest">
                         Password
                       </Label>
                       <div className="relative">
-                        <Input
+                        <input
                           id="password"
                           type={showPassword ? 'text' : 'password'}
                           autoComplete="current-password"
-                          className="h-11 bg-gray-50/80 border-gray-200 focus:bg-white text-sm pr-10"
+                          className="w-full h-11 rounded-xl px-3.5 pr-10 text-sm text-white placeholder:text-white/20 outline-none transition-all"
+                          style={{
+                            background: 'rgba(255,255,255,0.06)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                          }}
+                          onFocus={(e) => { e.currentTarget.style.border = '1px solid rgba(26,122,60,0.7)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(26,122,60,0.15)' }}
+                          onBlur={(e) => { e.currentTarget.style.border = '1px solid rgba(255,255,255,0.1)'; e.currentTarget.style.boxShadow = 'none' }}
                           {...register('password')}
                         />
                         <button
                           type="button"
                           tabIndex={-1}
                           onClick={() => setShowPassword((v) => !v)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
                         >
-                          {showPassword
-                            ? <EyeOff className="h-4 w-4" />
-                            : <Eye className="h-4 w-4" />
-                          }
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
                       {errors.password && (
-                        <p className="text-xs text-red-500 flex items-center gap-1">
-                          <span className="h-1 w-1 rounded-full bg-red-500 inline-block" />
+                        <p className="text-xs text-red-400 flex items-center gap-1.5">
+                          <span className="h-1 w-1 rounded-full bg-red-400 inline-block shrink-0" />
                           {errors.password.message}
                         </p>
                       )}
                     </div>
 
                     {error && (
-                      <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600 flex items-start gap-2.5">
-                        <svg className="h-4 w-4 shrink-0 mt-0.5 text-red-500" fill="none" viewBox="0 0 16 16">
+                      <div className="rounded-xl px-4 py-3 text-sm text-red-300 flex items-start gap-2.5"
+                        style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}
+                      >
+                        <svg className="h-4 w-4 shrink-0 mt-0.5 text-red-400" fill="none" viewBox="0 0 16 16">
                           <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5"/>
                           <path d="M8 5v3.5M8 11h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                         </svg>
@@ -234,21 +259,25 @@ export function Login() {
                   </div>
 
                   <div className="px-6 pb-6">
-                    <Button
+                    <button
                       type="submit"
-                      className="w-full h-11 text-sm font-semibold gap-2 shadow-sm shadow-brand-600/20"
                       disabled={isSubmitting}
+                      className="w-full h-11 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 transition-all disabled:opacity-60"
+                      style={{
+                        background: 'linear-gradient(135deg, #1a7a3c 0%, #166334 100%)',
+                        boxShadow: '0 4px 20px rgba(26,122,60,0.35), inset 0 1px 0 rgba(255,255,255,0.1)',
+                      }}
                     >
                       {isSubmitting
                         ? <><Loader2 className="h-4 w-4 animate-spin" /> Signing in…</>
                         : <><span>Sign in</span><ArrowRight className="h-4 w-4" /></>
                       }
-                    </Button>
+                    </button>
                   </div>
                 </form>
               </div>
 
-              <p className="mt-6 text-center text-xs text-gray-400">
+              <p className="mt-5 text-center text-xs text-white/20">
                 Access is restricted to authorized GoTime staff only.
               </p>
             </div>
@@ -257,41 +286,62 @@ export function Login() {
           {/* ── MFA step ── */}
           {step === 'mfa' && (
             <div>
-              <div className="mb-8">
-                <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-brand-50 border border-brand-100 mb-4">
-                  <ShieldCheck className="h-6 w-6 text-brand-600" />
+              <div className="mb-7">
+                <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl mb-4"
+                  style={{ background: 'rgba(26,122,60,0.15)', border: '1px solid rgba(26,122,60,0.3)' }}
+                >
+                  <ShieldCheck className="h-6 w-6 text-brand-400" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Two-Factor Auth</h2>
-                <p className="mt-1 text-sm text-gray-500">Enter the 6-digit code from your authenticator app</p>
+                <h2 className="text-2xl font-bold text-white tracking-tight">Two-Factor Auth</h2>
+                <p className="mt-1.5 text-sm text-white/40">Enter the 6-digit code from your authenticator app</p>
               </div>
 
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+              <div
+                className="rounded-2xl overflow-hidden"
+                style={{
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.09)',
+                  boxShadow: '0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)',
+                  backdropFilter: 'blur(20px)',
+                }}
+              >
                 <div className="p-6 space-y-5">
-                  {/* Code dots indicator */}
-                  <div className="flex justify-center gap-2 mb-2">
+                  {/* Code dots */}
+                  <div className="flex justify-center gap-2">
                     {Array.from({ length: 6 }).map((_, i) => (
                       <div
                         key={i}
-                        className={`h-2 w-2 rounded-full transition-all duration-150 ${
-                          i < mfaCode.length ? 'bg-brand-600 scale-110' : 'bg-gray-200'
-                        }`}
+                        className="h-2 w-2 rounded-full transition-all duration-150"
+                        style={{
+                          background: i < mfaCode.length ? '#4db985' : 'rgba(255,255,255,0.12)',
+                          transform: i < mfaCode.length ? 'scale(1.2)' : 'scale(1)',
+                          boxShadow: i < mfaCode.length ? '0 0 8px rgba(77,185,133,0.5)' : 'none',
+                        }}
                       />
                     ))}
                   </div>
 
-                  <Input
+                  <input
                     value={mfaCode}
                     onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     placeholder="000000"
-                    className="text-center text-3xl tracking-[0.6em] font-mono h-16 bg-gray-50 border-gray-200 focus:bg-white"
+                    className="w-full h-16 rounded-xl text-center text-3xl tracking-[0.6em] font-mono text-white placeholder:text-white/15 outline-none transition-all"
+                    style={{
+                      background: 'rgba(255,255,255,0.06)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                    }}
+                    onFocus={(e) => { e.currentTarget.style.border = '1px solid rgba(26,122,60,0.7)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(26,122,60,0.15)' }}
+                    onBlur={(e) => { e.currentTarget.style.border = '1px solid rgba(255,255,255,0.1)'; e.currentTarget.style.boxShadow = 'none' }}
                     maxLength={6}
                     autoFocus
                     onKeyDown={(e) => e.key === 'Enter' && mfaCode.length === 6 && onMfaSubmit()}
                   />
 
                   {error && (
-                    <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600 flex items-start gap-2.5">
-                      <svg className="h-4 w-4 shrink-0 mt-0.5 text-red-500" fill="none" viewBox="0 0 16 16">
+                    <div className="rounded-xl px-4 py-3 text-sm text-red-300 flex items-start gap-2.5"
+                      style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}
+                    >
+                      <svg className="h-4 w-4 shrink-0 mt-0.5 text-red-400" fill="none" viewBox="0 0 16 16">
                         <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5"/>
                         <path d="M8 5v3.5M8 11h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                       </svg>
@@ -299,22 +349,29 @@ export function Login() {
                     </div>
                   )}
 
-                  <Button
-                    className="w-full h-11 text-sm font-semibold gap-2 shadow-sm shadow-brand-600/20"
+                  <button
                     onClick={onMfaSubmit}
                     disabled={mfaCode.length !== 6 || mfaLoading}
+                    className="w-full h-11 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 transition-all disabled:opacity-40"
+                    style={{
+                      background: 'linear-gradient(135deg, #1a7a3c 0%, #166334 100%)',
+                      boxShadow: '0 4px 20px rgba(26,122,60,0.35), inset 0 1px 0 rgba(255,255,255,0.1)',
+                    }}
                   >
                     {mfaLoading
                       ? <><Loader2 className="h-4 w-4 animate-spin" /> Verifying…</>
                       : <><ShieldCheck className="h-4 w-4" /><span>Verify Code</span></>
                     }
-                  </Button>
+                  </button>
                 </div>
 
-                <div className="px-6 pb-5 border-t border-gray-100 pt-4 bg-gray-50/60">
+                <div
+                  className="px-6 py-4"
+                  style={{ borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.15)' }}
+                >
                   <button
                     type="button"
-                    className="w-full text-xs text-gray-400 hover:text-gray-700 transition-colors font-medium"
+                    className="w-full text-xs text-white/25 hover:text-white/60 transition-colors font-medium"
                     onClick={() => { setStep('credentials'); setMfaCode(''); setError(null) }}
                   >
                     ← Back to sign in
