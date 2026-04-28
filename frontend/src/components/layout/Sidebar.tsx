@@ -58,7 +58,7 @@ export function Sidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto scrollbar-thin">
+      <nav className="flex-1 px-3 py-4 space-y-5 overflow-hidden">
         {NAV_GROUPS.map((group) => {
           const groupItems = group.items
             .map((path) => visibleItems.find((i) => i.to === path))

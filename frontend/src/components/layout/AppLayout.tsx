@@ -26,8 +26,10 @@ export function AppLayout() {
       <Sidebar />
       <div className="flex flex-col flex-1 min-w-0 min-h-0">
         <TopBar />
-        <main className="flex-1 overflow-y-auto p-6 scrollbar-thin">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto scrollbar-thin">
+          <div className="p-6 min-h-full">
+            <Outlet />
+          </div>
         </main>
       </div>
 
