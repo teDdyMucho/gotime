@@ -4,33 +4,31 @@
 
 @layer base {
   :root {
-    --background: 220 20% 97%;
-    --foreground: 220 25% 10%;
+    --background: 216 22% 95%;
+    --foreground: 222 30% 9%;
     --card: 0 0% 100%;
-    --card-foreground: 220 25% 10%;
+    --card-foreground: 222 30% 9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 10%;
-    --primary: 142 65% 29%;
+    --popover-foreground: 222 30% 9%;
+    --primary: 142 62% 27%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 15% 94%;
+    --secondary: 220 14% 92%;
     --secondary-foreground: 220 25% 20%;
-    --muted: 220 15% 94%;
-    --muted-foreground: 220 10% 50%;
-    --accent: 220 15% 92%;
-    --accent-foreground: 220 25% 15%;
-    --destructive: 0 72% 51%;
+    --muted: 220 14% 92%;
+    --muted-foreground: 220 10% 46%;
+    --accent: 220 14% 90%;
+    --accent-foreground: 220 25% 14%;
+    --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 15% 88%;
-    --input: 220 15% 88%;
-    --ring: 142 65% 29%;
-    --radius: 0.625rem;
+    --border: 220 13% 84%;
+    --input: 220 13% 84%;
+    --ring: 142 62% 27%;
+    --radius: 0.5rem;
   }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
+  * { @apply border-border; }
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
@@ -40,17 +38,12 @@
 @layer utilities {
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: #d1d5db transparent;
+    scrollbar-color: #dde1e7 transparent;
   }
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
-  }
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
-  }
+  .scrollbar-thin::-webkit-scrollbar { width: 4px; height: 4px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: #d1d5db;
+    background-color: #dde1e7;
     border-radius: 9999px;
   }
 }
