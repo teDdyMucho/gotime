@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Combobox } from '@/components/ui/combobox'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, User, Car, CreditCard, FileText, Send, AlertTriangle } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 
 const schema = z.object({
@@ -86,27 +86,32 @@ const quickFacilitySchema = z.object({
 })
 type QuickFacilityForm = z.infer<typeof quickFacilitySchema>
 
-function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-      <div className="px-5 py-3.5 border-b border-gray-100 rounded-t-xl">
-        <p className="text-sm font-semibold text-gray-700">{title}</p>
-      </div>
-      <div className="px-5 py-5">{children}</div>
-    </div>
-  )
-}
-
 function Field({ label, error, required, children }: {
   label: string; error?: string; required?: boolean; children: React.ReactNode
 }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+      <Label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
         {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </Label>
       {children}
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {error && <p className="text-xs text-red-500 mt-0.5">{error}</p>}
+    </div>
+  )
+}
+
+function Section({ title, icon: Icon, iconBg, children }: {
+  title: string; icon: React.ElementType; iconBg: string; children: React.ReactNode
+}) {
+  return (
+    <div className="bg-white border-b border-gray-100 last:border-b-0">
+      <div className="flex items-center gap-3 px-6 py-3.5 border-b border-gray-100 bg-gray-50/60">
+        <div className={`h-7 w-7 rounded-lg flex items-center justify-center shrink-0 ${iconBg}`}>
+          <Icon className="h-3.5 w-3.5" />
+        </div>
+        <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">{title}</span>
+      </div>
+      <div className="px-6 py-5">{children}</div>
     </div>
   )
 }
@@ -211,8 +216,8 @@ export function IntakeForm() {
   const [requestorFacilityId, setRequestorFacilityId] = useState('')
 
   const facilityId = watch('facility_id') ?? ''
-  const tripType = watch('trip_type')
-  const clientId = watch('client_id') ?? ''
+  const tripType   = watch('trip_type')
+  const clientId   = watch('client_id') ?? ''
 
   useEffect(() => {
     const facility = facilities.find((f) => f.id === facilityId)
@@ -239,11 +244,9 @@ export function IntakeForm() {
     { value: 'na', label: 'N/A — No Facility', sublabel: 'Walk-in / direct caller' },
     ...facilities.map((f) => ({ value: f.id, label: f.name, sublabel: f.address })),
   ]
-
   const requestorOptions = filteredRequestors.map((r) => ({
     value: r.id, label: r.name, sublabel: r.title_department,
   }))
-
   const clientOptions = clients.map((c) => ({
     value: c.id, label: c.full_name,
     sublabel: c.date_of_birth ? `DOB: ${formatDate(c.date_of_birth)}` : undefined,
@@ -267,304 +270,353 @@ export function IntakeForm() {
   }
 
   return (
-    <div className="max-w-4xl space-y-4 pb-10">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <div className="flex flex-col gap-0 -m-6 min-h-full bg-gray-50">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col">
 
-        {/* Intake Information */}
-        <SectionCard title="Intake Information">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Field label="Intake Channel" required error={errors.intake_channel?.message}>
-              <Controller name="intake_channel" control={control} render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {(['phone', 'email', 'fax', 'portal', 'internal'] as const).map((v) => (
-                      <SelectItem key={v} value={v} className="capitalize">{v}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )} />
-            </Field>
-
-            <Field label="Facility" error={errors.facility_id?.message}>
-              <div className="flex gap-1.5">
-                <Controller name="facility_id" control={control} render={({ field }) => (
-                  <Combobox className="flex-1" value={field.value ?? ''} onChange={field.onChange}
-                    options={facilityOptions} placeholder="Search facility…" />
-                )} />
-                <Button type="button" variant="outline" size="icon" title="Add facility"
-                  onClick={() => { setQuickFacilityFor('intake'); resetFacility({}); setQuickFacilityOpen(true) }}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              {facilityId && facilityId !== 'na' && (() => {
-                const f = facilities.find(x => x.id === facilityId)
-                return f?.address ? <p className="text-xs text-gray-400 mt-1">Pick-up: {f.address}</p> : null
-              })()}
-            </Field>
-
-            <Field label="Requestor" required error={errors.requestor_id?.message}>
-              <div className="flex gap-1.5">
-                <Controller name="requestor_id" control={control} render={({ field }) => (
-                  <Combobox className="flex-1" value={field.value ?? ''} onChange={field.onChange}
-                    options={requestorOptions} placeholder="Search requestor…"
-                    emptyText={facilityId ? 'No requestors for this facility' : 'Select a facility first'} />
-                )} />
-                <Button type="button" variant="outline" size="icon" title="Quick-add requestor"
-                  onClick={() => {
-                    setRequestorFacilityId(facilityId !== 'na' ? facilityId : '')
-                    resetRequestor({ preferred_notification_method: 'email' })
-                    setQuickRequestorOpen(true)
-                  }}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </Field>
-
-            <Field label="Callback Phone" error={errors.callback_phone?.message}>
-              <Input {...register('callback_phone')} placeholder="(555) 000-0000" />
-            </Field>
-
-            <Field label="Reply Email" error={errors.reply_email?.message}>
-              <Input {...register('reply_email')} type="email" placeholder="requestor@facility.org" />
-            </Field>
+        {/* ── Hero header ── */}
+        <div className="bg-white border-b border-gray-200 px-6 py-4 shrink-0 flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-base font-bold text-gray-900 tracking-tight">New Trip Request</h1>
+            <p className="text-[11px] text-gray-400 mt-0.5">Fill in all required fields and submit to create a trip</p>
           </div>
-        </SectionCard>
-
-        {/* Client */}
-        <SectionCard title="Client">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Field label="Client" required error={errors.client_id?.message}>
-              <div className="flex gap-1.5">
-                <Controller name="client_id" control={control} render={({ field }) => (
-                  <Combobox className="flex-1" value={field.value ?? ''} onChange={field.onChange}
-                    options={clientOptions} placeholder="Search client…" />
-                )} />
-                <Button type="button" variant="outline" size="icon" title="Quick-add client"
-                  onClick={() => { resetClient({}); setQuickClientOpen(true) }}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </Field>
-
-            <Field label="Date of Birth">
-              <Input readOnly value={selectedClient?.date_of_birth ? formatDate(selectedClient.date_of_birth) : ''}
-                placeholder="Auto-filled from client" className="bg-gray-50 text-gray-500" />
-            </Field>
-
-            <Field label="Mobility Level" error={errors.mobility_level?.message}>
-              <Controller name="mobility_level" control={control} render={({ field }) => (
-                <Select value={field.value ?? ''} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
-                  <SelectContent>
-                    {(['ambulatory', 'wheelchair', 'stretcher', 'other'] as const).map((v) => (
-                      <SelectItem key={v} value={v} className="capitalize">{v}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )} />
-            </Field>
-
-            <div className="lg:col-span-3">
-              <Field label="Special Notes" error={errors.special_notes?.message}>
-                <Textarea {...register('special_notes')} rows={2} placeholder="Mobility aids, access notes…" className="resize-none" />
-              </Field>
-            </div>
+          <div className="flex items-center gap-2">
+            <Button type="button" variant="outline" size="sm" className="h-8 text-xs" onClick={() => navigate(-1)}>
+              Cancel
+            </Button>
+            <Button type="submit" size="sm" disabled={isSubmitting} className="h-8 text-xs gap-1.5">
+              <Send className="h-3.5 w-3.5" />
+              {isSubmitting ? 'Submitting…' : 'Submit Trip Request'}
+            </Button>
           </div>
-        </SectionCard>
+        </div>
 
-        {/* Trip Details */}
-        <SectionCard title="Trip Details">
-          <div className="space-y-5">
-            <div>
-              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">Leg 1</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Field label="Pick-up Date" required error={errors.trip_date?.message}>
-                  <Input type="date" {...register('trip_date')} />
-                </Field>
-                <Field label="Pick-up Time" error={errors.requested_pickup_time?.message}>
-                  <Input type="time" {...register('requested_pickup_time')} />
-                </Field>
-                <Field label="Drop-off Location Name" error={errors.dropoff_location_name?.message}>
-                  <Input {...register('dropoff_location_name')} placeholder="e.g. Mass General Hospital" />
-                </Field>
-                <Field label="Drop-off Address" error={errors.dropoff_address?.message}>
-                  <Input {...register('dropoff_address')} placeholder="456 Medical Center Dr" />
-                </Field>
-                <Field label="Appointment Time" error={errors.appointment_time?.message}>
-                  <Input type="time" {...register('appointment_time')} />
-                </Field>
-                <Field label="Appointment Type" error={errors.appointment_type?.message}>
-                  <Input {...register('appointment_type')} placeholder="e.g. Dialysis, Oncology" />
-                </Field>
-                <div className="lg:col-span-3">
-                  <Field label="Drop-off Notes (floor, suite, dept)" error={errors.dropoff_notes?.message}>
-                    <Input {...register('dropoff_notes')} placeholder="e.g. 3rd floor, Suite 310" />
-                  </Field>
-                </div>
-              </div>
-            </div>
+        {/* ── Card container ── */}
+        <div className="p-6 space-y-4">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Field label="Trip Type" required error={errors.trip_type?.message}>
-                <Controller name="trip_type" control={control} render={({ field }) => (
-                  <Select value={field.value} onValueChange={(v) => { field.onChange(v); if (v !== 'multi_trip') setAdditionalLegs([]) }}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="one_way">One Way</SelectItem>
-                      <SelectItem value="round_trip">Round Trip</SelectItem>
-                      <SelectItem value="multi_trip">Multi-Trip</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )} />
-              </Field>
+            {/* ── Intake Information ── */}
+            <Section title="Intake Information" icon={FileText} iconBg="bg-blue-100 text-blue-600">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                <Field label="Intake Channel" required error={errors.intake_channel?.message}>
+                  <Controller name="intake_channel" control={control} render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {(['phone', 'email', 'fax', 'portal', 'internal'] as const).map((v) => (
+                          <SelectItem key={v} value={v} className="capitalize">{v}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )} />
+                </Field>
 
-              <Field label="Urgency Level" required error={errors.urgency_level?.message}>
-                <Controller name="urgency_level" control={control} render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="standard">Standard</SelectItem>
-                      <SelectItem value="urgent">Urgent</SelectItem>
-                      <SelectItem value="emergency">Emergency</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )} />
-              </Field>
-
-              <div className="flex items-center gap-5 mt-6">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" {...register('escort_needed')} className="h-4 w-4 rounded border-gray-300 accent-brand-600" />
-                  <span className="text-xs font-medium text-gray-600">Escort Needed</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" {...register('will_call')} className="h-4 w-4 rounded border-gray-300 accent-brand-600" />
-                  <span className="text-xs font-medium text-gray-600">Will Call</span>
-                </label>
-              </div>
-            </div>
-
-            {tripType === 'round_trip' && (
-              <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-3">
-                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Leg 2 — Return to Pick-up Address</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Field label="Return Pickup Time" error={errors.return_time?.message}>
-                    <Input type="time" {...register('return_time')} />
-                  </Field>
-                </div>
-              </div>
-            )}
-
-            {tripType === 'multi_trip' && (
-              <div className="space-y-3">
-                {additionalLegs.map((leg, i) => (
-                  <div key={i} className="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Leg {i + 2}</p>
-                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6"
-                        onClick={() => setAdditionalLegs((prev) => prev.filter((_, j) => j !== i))}>
-                        <Trash2 className="h-3.5 w-3.5 text-gray-400" />
+                <div className="xl:col-span-2">
+                  <Field label="Facility" error={errors.facility_id?.message}>
+                    <div className="flex gap-1.5">
+                      <Controller name="facility_id" control={control} render={({ field }) => (
+                        <Combobox className="flex-1" value={field.value ?? ''} onChange={field.onChange}
+                          options={facilityOptions} placeholder="Search facility…" />
+                      )} />
+                      <Button type="button" variant="outline" size="icon" className="shrink-0" title="Add facility"
+                        onClick={() => { setQuickFacilityFor('intake'); resetFacility({}); setQuickFacilityOpen(true) }}>
+                        <Plus className="h-4 w-4" />
                       </Button>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {(
-                        [
-                          ['dropoff_location_name', 'Drop-off Location Name', 'text', 'e.g. Mass General Hospital'],
-                          ['dropoff_address', 'Drop-off Address', 'text', '456 Medical Center Dr'],
-                          ['appointment_time', 'Appointment Time', 'time', ''],
-                          ['appointment_type', 'Appointment Type', 'text', 'e.g. Dialysis'],
-                          ['dropoff_notes', 'Drop-off Notes', 'text', 'Floor/suite/dept'],
-                        ] as [keyof TripLeg, string, string, string][]
-                      ).map(([key, label, type, placeholder]) => (
-                        <div key={key} className="space-y-1.5">
-                          <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{label}</Label>
-                          <Input type={type} placeholder={placeholder} value={leg[key]}
-                            onChange={(e) =>
-                              setAdditionalLegs((prev) =>
-                                prev.map((l, j) => j === i ? { ...l, [key]: e.target.value } : l)
-                              )
-                            }
-                          />
-                        </div>
-                      ))}
+                    {facilityId && facilityId !== 'na' && (() => {
+                      const f = facilities.find(x => x.id === facilityId)
+                      return f?.address ? <p className="text-xs text-gray-400 mt-1">Pick-up: {f.address}</p> : null
+                    })()}
+                  </Field>
+                </div>
+
+                <div className="xl:col-span-2">
+                  <Field label="Requestor" required error={errors.requestor_id?.message}>
+                    <div className="flex gap-1.5">
+                      <Controller name="requestor_id" control={control} render={({ field }) => (
+                        <Combobox className="flex-1" value={field.value ?? ''} onChange={field.onChange}
+                          options={requestorOptions} placeholder="Search requestor…"
+                          emptyText={facilityId ? 'No requestors for this facility' : 'Select a facility first'} />
+                      )} />
+                      <Button type="button" variant="outline" size="icon" className="shrink-0" title="Quick-add requestor"
+                        onClick={() => {
+                          setRequestorFacilityId(facilityId !== 'na' ? facilityId : '')
+                          resetRequestor({ preferred_notification_method: 'email' })
+                          setQuickRequestorOpen(true)
+                        }}>
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </Field>
+                </div>
+
+                <Field label="Callback Phone" error={errors.callback_phone?.message}>
+                  <Input {...register('callback_phone')} placeholder="(555) 000-0000" />
+                </Field>
+
+                <Field label="Reply Email" error={errors.reply_email?.message}>
+                  <Input {...register('reply_email')} type="email" placeholder="requestor@facility.org" />
+                </Field>
+              </div>
+            </Section>
+
+            {/* ── Client ── */}
+            <Section title="Client" icon={User} iconBg="bg-brand-100 text-brand-600">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="lg:col-span-2">
+                  <Field label="Client" required error={errors.client_id?.message}>
+                    <div className="flex gap-1.5">
+                      <Controller name="client_id" control={control} render={({ field }) => (
+                        <Combobox className="flex-1" value={field.value ?? ''} onChange={field.onChange}
+                          options={clientOptions} placeholder="Search client…" />
+                      )} />
+                      <Button type="button" variant="outline" size="icon" className="shrink-0" title="Quick-add client"
+                        onClick={() => { resetClient({}); setQuickClientOpen(true) }}>
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </Field>
+                </div>
+
+                <Field label="Date of Birth">
+                  <Input readOnly
+                    value={selectedClient?.date_of_birth ? formatDate(selectedClient.date_of_birth) : ''}
+                    placeholder="Auto-filled from client"
+                    className="bg-gray-50 text-gray-500 cursor-default" />
+                </Field>
+
+                <Field label="Mobility Level" error={errors.mobility_level?.message}>
+                  <Controller name="mobility_level" control={control} render={({ field }) => (
+                    <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                      <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+                      <SelectContent>
+                        {(['ambulatory', 'wheelchair', 'stretcher', 'other'] as const).map((v) => (
+                          <SelectItem key={v} value={v} className="capitalize">{v}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )} />
+                </Field>
+
+                <div className="lg:col-span-4">
+                  <Field label="Special Notes" error={errors.special_notes?.message}>
+                    <Textarea {...register('special_notes')} rows={2} placeholder="Mobility aids, access notes…" className="resize-none" />
+                  </Field>
+                </div>
+              </div>
+            </Section>
+
+            {/* ── Trip Details ── */}
+            <Section title="Trip Details" icon={Car} iconBg="bg-orange-100 text-orange-600">
+              <div className="space-y-5">
+                {/* Leg 1 */}
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Leg 1</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                    <Field label="Pick-up Date" required error={errors.trip_date?.message}>
+                      <Input type="date" {...register('trip_date')} />
+                    </Field>
+                    <Field label="Pick-up Time" error={errors.requested_pickup_time?.message}>
+                      <Input type="time" {...register('requested_pickup_time')} />
+                    </Field>
+                    <Field label="Appointment Time" error={errors.appointment_time?.message}>
+                      <Input type="time" {...register('appointment_time')} />
+                    </Field>
+                    <Field label="Appointment Type" error={errors.appointment_type?.message}>
+                      <Input {...register('appointment_type')} placeholder="e.g. Dialysis" />
+                    </Field>
+                    <div className="xl:col-span-2">
+                      <Field label="Drop-off Location Name" error={errors.dropoff_location_name?.message}>
+                        <Input {...register('dropoff_location_name')} placeholder="e.g. Mass General Hospital" />
+                      </Field>
+                    </div>
+                    <div className="xl:col-span-2">
+                      <Field label="Drop-off Address" error={errors.dropoff_address?.message}>
+                        <Input {...register('dropoff_address')} placeholder="456 Medical Center Dr" />
+                      </Field>
+                    </div>
+                    <div className="xl:col-span-4">
+                      <Field label="Drop-off Notes (floor, suite, dept)" error={errors.dropoff_notes?.message}>
+                        <Input {...register('dropoff_notes')} placeholder="e.g. 3rd floor, Suite 310" />
+                      </Field>
                     </div>
                   </div>
-                ))}
-                <Button type="button" variant="outline" size="sm" className="h-8 text-xs"
-                  onClick={() => setAdditionalLegs((prev) => [...prev, newLeg()])}>
-                  <Plus className="h-3.5 w-3.5 mr-1.5" />
-                  Add Trip Leg
-                </Button>
-              </div>
-            )}
-          </div>
-        </SectionCard>
+                </div>
 
-        {/* Billing */}
-        <SectionCard title="Billing">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Field label="Pay Source" error={errors.pay_source_id?.message}>
-              <Controller name="pay_source_id" control={control} render={({ field }) => (
-                <Select value={field.value ?? ''} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue placeholder="Select pay source…" /></SelectTrigger>
-                  <SelectContent>
-                    {paySources.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                {/* Trip options */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2 border-t border-gray-100">
+                  <Field label="Trip Type" required error={errors.trip_type?.message}>
+                    <Controller name="trip_type" control={control} render={({ field }) => (
+                      <Select value={field.value} onValueChange={(v) => { field.onChange(v); if (v !== 'multi_trip') setAdditionalLegs([]) }}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="one_way">One Way</SelectItem>
+                          <SelectItem value="round_trip">Round Trip</SelectItem>
+                          <SelectItem value="multi_trip">Multi-Trip</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )} />
+                  </Field>
+
+                  <Field label="Urgency Level" required error={errors.urgency_level?.message}>
+                    <Controller name="urgency_level" control={control} render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="standard">Standard</SelectItem>
+                          <SelectItem value="urgent">Urgent</SelectItem>
+                          <SelectItem value="emergency">Emergency</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )} />
+                  </Field>
+
+                  <div className="flex items-end gap-5 pb-0.5">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" {...register('escort_needed')} className="h-4 w-4 rounded border-gray-300 accent-brand-600" />
+                      <span className="text-xs font-semibold text-gray-600">Escort Needed</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" {...register('will_call')} className="h-4 w-4 rounded border-gray-300 accent-brand-600" />
+                      <span className="text-xs font-semibold text-gray-600">Will Call</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Round trip leg */}
+                {tripType === 'round_trip' && (
+                  <div className="rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-4">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Leg 2 — Return to Pick-up</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <Field label="Return Pickup Time" error={errors.return_time?.message}>
+                        <Input type="time" {...register('return_time')} />
+                      </Field>
+                    </div>
+                  </div>
+                )}
+
+                {/* Multi-trip legs */}
+                {tripType === 'multi_trip' && (
+                  <div className="space-y-3">
+                    {additionalLegs.map((leg, i) => (
+                      <div key={i} className="rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Leg {i + 2}</p>
+                          <Button type="button" variant="ghost" size="icon" className="h-6 w-6"
+                            onClick={() => setAdditionalLegs((prev) => prev.filter((_, j) => j !== i))}>
+                            <Trash2 className="h-3.5 w-3.5 text-gray-400" />
+                          </Button>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {(
+                            [
+                              ['dropoff_location_name', 'Drop-off Location', 'text', 'e.g. Mass General Hospital'],
+                              ['dropoff_address', 'Drop-off Address', 'text', '456 Medical Center Dr'],
+                              ['appointment_time', 'Appointment Time', 'time', ''],
+                              ['appointment_type', 'Appointment Type', 'text', 'e.g. Dialysis'],
+                              ['dropoff_notes', 'Drop-off Notes', 'text', 'Floor/suite/dept'],
+                            ] as [keyof TripLeg, string, string, string][]
+                          ).map(([key, label, type, placeholder]) => (
+                            <div key={key} className="space-y-1.5">
+                              <Label className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">{label}</Label>
+                              <Input type={type} placeholder={placeholder} value={leg[key]}
+                                onChange={(e) =>
+                                  setAdditionalLegs((prev) =>
+                                    prev.map((l, j) => j === i ? { ...l, [key]: e.target.value } : l)
+                                  )
+                                }
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     ))}
-                  </SelectContent>
-                </Select>
-              )} />
-            </Field>
+                    <Button type="button" variant="outline" size="sm" className="h-8 text-xs gap-1.5"
+                      onClick={() => setAdditionalLegs((prev) => [...prev, newLeg()])}>
+                      <Plus className="h-3.5 w-3.5" />
+                      Add Trip Leg
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </Section>
 
-            <Field label="Expected Revenue ($)" error={errors.expected_revenue?.message}>
-              <Input type="number" step="0.01" min="0"
-                {...register('expected_revenue', { valueAsNumber: true })} placeholder="0.00" />
-            </Field>
+            {/* ── Billing ── */}
+            <Section title="Billing" icon={CreditCard} iconBg="bg-emerald-100 text-emerald-600">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Field label="Pay Source" error={errors.pay_source_id?.message}>
+                  <Controller name="pay_source_id" control={control} render={({ field }) => (
+                    <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                      <SelectTrigger><SelectValue placeholder="Select pay source…" /></SelectTrigger>
+                      <SelectContent>
+                        {paySources.map((p) => (
+                          <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )} />
+                </Field>
 
-            <Field label="Trip Order ID" error={errors.trip_order_id?.message}>
-              <Input {...register('trip_order_id')} placeholder="External order reference" />
-            </Field>
+                <Field label="Expected Revenue ($)" error={errors.expected_revenue?.message}>
+                  <Input type="number" step="0.01" min="0"
+                    {...register('expected_revenue', { valueAsNumber: true })} placeholder="0.00" />
+                </Field>
 
-            <div className="lg:col-span-2">
-              <Field label="Billing Notes" error={errors.billing_notes?.message}>
-                <Textarea {...register('billing_notes')} rows={2} placeholder="Auth codes, billing instructions…" className="resize-none" />
-              </Field>
-            </div>
+                <Field label="Trip Order ID" error={errors.trip_order_id?.message}>
+                  <Input {...register('trip_order_id')} placeholder="External order reference" />
+                </Field>
+
+                <div className="lg:col-span-4">
+                  <Field label="Billing Notes" error={errors.billing_notes?.message}>
+                    <Textarea {...register('billing_notes')} rows={2} placeholder="Auth codes, billing instructions…" className="resize-none" />
+                  </Field>
+                </div>
+              </div>
+            </Section>
+
+            {/* ── Internal Notes ── */}
+            <Section title="Internal Notes" icon={AlertTriangle} iconBg="bg-amber-100 text-amber-600">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Field label="Dispatch Notes" error={errors.intake_notes?.message}>
+                  <Textarea {...register('intake_notes')} rows={3} placeholder="Notes for dispatcher…" className="resize-none" />
+                </Field>
+                <Field label="Internal Warning" error={errors.internal_warning?.message}>
+                  <Textarea {...register('internal_warning')} rows={3} placeholder="Flags or warnings for dispatcher…" className="resize-none" />
+                </Field>
+                <div className="sm:col-span-2">
+                  <label className="flex items-center gap-2.5 cursor-pointer w-fit">
+                    <input type="checkbox" id="missing_info" {...register('missing_info_flag')}
+                      className="h-4 w-4 rounded border-gray-300 accent-amber-500" />
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Flag as Missing Info</span>
+                  </label>
+                </div>
+              </div>
+            </Section>
+
           </div>
-        </SectionCard>
 
-        {/* Internal Notes */}
-        <SectionCard title="Internal Notes">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Dispatch Notes" error={errors.intake_notes?.message}>
-              <Textarea {...register('intake_notes')} rows={3} placeholder="Notes for dispatcher…" className="resize-none" />
-            </Field>
-            <Field label="Internal Warning" error={errors.internal_warning?.message}>
-              <Textarea {...register('internal_warning')} rows={3} placeholder="Flags or warnings for dispatcher…" className="resize-none" />
-            </Field>
+          {submitError && (
+            <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600 flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 shrink-0" />
+              {submitError}
+            </div>
+          )}
+
+          {/* Bottom submit bar */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-4 flex items-center justify-between gap-4">
+            <p className="text-xs text-gray-400">All required fields must be filled before submitting.</p>
             <div className="flex items-center gap-2">
-              <input type="checkbox" id="missing_info" {...register('missing_info_flag')}
-                className="h-4 w-4 rounded border-gray-300 accent-amber-500" />
-              <Label htmlFor="missing_info" className="text-xs font-semibold text-gray-500 uppercase tracking-wide cursor-pointer">
-                Missing Info Flag
-              </Label>
+              <Button type="button" variant="outline" size="sm" className="h-9 px-4" onClick={() => navigate(-1)}>Cancel</Button>
+              <Button type="submit" disabled={isSubmitting} className="h-9 px-5 gap-1.5">
+                <Send className="h-3.5 w-3.5" />
+                {isSubmitting ? 'Submitting…' : 'Submit Trip Request'}
+              </Button>
             </div>
           </div>
-        </SectionCard>
-
-        {submitError && (
-          <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">{submitError}</div>
-        )}
-
-        <div className="flex gap-3">
-          <Button type="submit" disabled={isSubmitting} className="h-9 px-5 text-sm">
-            {isSubmitting ? 'Submitting…' : 'Submit Trip Request'}
-          </Button>
-          <Button type="button" variant="outline" className="h-9 px-5 text-sm" onClick={() => navigate(-1)}>Cancel</Button>
         </div>
+
       </form>
 
-      {/* Quick-Add Client */}
+      {/* ── Quick-Add Client ── */}
       <Dialog open={quickClientOpen} onOpenChange={setQuickClientOpen}>
         <DialogContent className="max-w-md" aria-describedby={undefined}>
           <DialogHeader><DialogTitle>Quick-Add Client</DialogTitle></DialogHeader>
@@ -607,7 +659,7 @@ export function IntakeForm() {
         </DialogContent>
       </Dialog>
 
-      {/* Quick-Add Requestor */}
+      {/* ── Quick-Add Requestor ── */}
       <Dialog open={quickRequestorOpen} onOpenChange={setQuickRequestorOpen}>
         <DialogContent className="max-w-md" aria-describedby={undefined}>
           <DialogHeader><DialogTitle>Quick-Add Requestor</DialogTitle></DialogHeader>
@@ -656,7 +708,7 @@ export function IntakeForm() {
         </DialogContent>
       </Dialog>
 
-      {/* Quick-Add Facility */}
+      {/* ── Quick-Add Facility ── */}
       <Dialog open={quickFacilityOpen} onOpenChange={setQuickFacilityOpen}>
         <DialogContent className="max-w-sm" aria-describedby={undefined}>
           <DialogHeader><DialogTitle>Add Facility</DialogTitle></DialogHeader>
