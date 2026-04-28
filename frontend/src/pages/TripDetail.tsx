@@ -460,7 +460,7 @@ export function TripDetail() {
               {reviewDialog === 'return'  && 'Return for Clarification'}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-1">
+          <div className="px-6 py-5 space-y-4">
             {reviewDialog === 'decline' && (
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Decline Reason *</Label>
@@ -512,7 +512,7 @@ export function TripDetail() {
       <Dialog open={cancelDialog} onOpenChange={setCancelDialog}>
         <DialogContent aria-describedby={undefined} className="max-w-md">
           <DialogHeader><DialogTitle>Cancel Trip</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-1">
+          <div className="px-6 py-5 space-y-4">
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Cancellation Reason *</Label>
               <Select value={cancelReason} onValueChange={setCancelReason}>
@@ -541,7 +541,7 @@ export function TripDetail() {
       <Dialog open={notifyDialog} onOpenChange={setNotifyDialog}>
         <DialogContent aria-describedby={undefined} className="max-w-md">
           <DialogHeader><DialogTitle>Send Notification</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-1">
+          <div className="px-6 py-5 space-y-4">
             {requestor && (
               <div className="rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm space-y-1">
                 <p className="font-semibold text-gray-800">{requestor.name}</p>
