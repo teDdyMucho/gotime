@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Truck, ShieldCheck, Loader2 } from 'lucide-react'
+import { Truck, ShieldCheck, Loader2, Eye, EyeOff, ArrowRight } from 'lucide-react'
 import { signIn, supabase } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,13 +16,20 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 type Step = 'credentials' | 'mfa'
 
+const FEATURES = [
+  { label: 'Real-time dispatch queue' },
+  { label: 'Automated requestor notifications' },
+  { label: 'Full audit trail & compliance' },
+]
+
 export function Login() {
   const navigate = useNavigate()
-  const [step, setStep]                   = useState<Step>('credentials')
-  const [mfaFactorId, setMfaFactorId]     = useState<string>('')
-  const [mfaCode, setMfaCode]             = useState('')
-  const [mfaLoading, setMfaLoading]       = useState(false)
-  const [error, setError]                 = useState<string | null>(null)
+  const [step, setStep]               = useState<Step>('credentials')
+  const [mfaFactorId, setMfaFactorId] = useState<string>('')
+  const [mfaCode, setMfaCode]         = useState('')
+  const [mfaLoading, setMfaLoading]   = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [error, setError]             = useState<string | null>(null)
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -76,122 +83,247 @@ export function Login() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-950">
-      {/* Left panel — branding */}
-      <div className="hidden lg:flex w-[420px] flex-col justify-between bg-gray-900 border-r border-white/8 px-10 py-12">
-        <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-lg bg-brand-600 flex items-center justify-center">
-            <Truck className="h-5 w-5 text-white" />
+    <div className="flex min-h-screen">
+
+      {/* ── Left panel ── */}
+      <div className="hidden lg:flex w-[480px] shrink-0 flex-col relative overflow-hidden bg-gray-950">
+        {/* Gradient orbs */}
+        <div className="absolute -top-32 -left-32 h-[480px] w-[480px] rounded-full bg-brand-600/20 blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-0 right-0 h-[360px] w-[360px] rounded-full bg-brand-600/10 blur-[100px] pointer-events-none" />
+
+        {/* Grid texture */}
+        <div
+          className="absolute inset-0 opacity-[0.04] pointer-events-none"
+          style={{
+            backgroundImage: 'linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)',
+            backgroundSize: '40px 40px',
+          }}
+        />
+
+        <div className="relative z-10 flex flex-col h-full px-12 py-12">
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-brand-600 flex items-center justify-center shadow-lg shadow-brand-600/30">
+              <Truck className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <p className="font-bold text-white text-lg leading-tight tracking-tight">GoTime</p>
+              <p className="text-[11px] text-white/35 leading-tight tracking-widest uppercase">Transportation</p>
+            </div>
           </div>
-          <span className="text-xl font-bold text-white tracking-tight">GoTime</span>
+
+          {/* Hero copy */}
+          <div className="mt-auto mb-10">
+            <div className="inline-flex items-center gap-2 rounded-full bg-brand-600/15 border border-brand-600/25 px-3.5 py-1.5 mb-6">
+              <span className="h-1.5 w-1.5 rounded-full bg-brand-400 animate-pulse" />
+              <span className="text-[11px] font-semibold text-brand-300 uppercase tracking-widest">Dispatch Platform</span>
+            </div>
+
+            <h1 className="text-4xl font-extrabold text-white leading-[1.15] tracking-tight">
+              Dispatch smarter.<br />
+              <span className="text-brand-400">Move people faster.</span>
+            </h1>
+            <p className="mt-4 text-sm text-white/40 leading-relaxed max-w-xs">
+              Built for dispatch teams who need speed, clarity, and full operational control.
+            </p>
+
+            {/* Feature list */}
+            <ul className="mt-8 space-y-3">
+              {FEATURES.map((f) => (
+                <li key={f.label} className="flex items-center gap-3">
+                  <div className="h-5 w-5 rounded-full bg-brand-600/20 border border-brand-600/30 flex items-center justify-center shrink-0">
+                    <svg className="h-2.5 w-2.5 text-brand-400" fill="none" viewBox="0 0 12 12">
+                      <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <span className="text-sm text-white/55">{f.label}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <p className="text-xs text-white/20">© {new Date().getFullYear()} GoTime Transportation. All rights reserved.</p>
         </div>
-        <div>
-          <p className="text-3xl font-bold text-white leading-snug">
-            Dispatch smarter.<br />Move people faster.
-          </p>
-          <p className="mt-3 text-sm text-white/45 leading-relaxed">
-            GoTime Transportation Management — built for dispatch teams who need speed, clarity, and control.
-          </p>
-        </div>
-        <p className="text-xs text-white/25">© {new Date().getFullYear()} GoTime Transportation</p>
       </div>
 
-      {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12 bg-gray-50">
-        <div className="w-full max-w-sm">
-          {/* Mobile logo */}
-          <div className="flex items-center gap-2.5 mb-8 lg:hidden">
-            <div className="h-8 w-8 rounded-lg bg-brand-600 flex items-center justify-center">
-              <Truck className="h-4 w-4 text-white" />
-            </div>
-            <span className="text-lg font-bold text-gray-900">GoTime</span>
+      {/* ── Right panel ── */}
+      <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 px-6 py-12">
+        {/* Mobile logo */}
+        <div className="flex items-center gap-2.5 mb-10 lg:hidden">
+          <div className="h-9 w-9 rounded-xl bg-brand-600 flex items-center justify-center">
+            <Truck className="h-4.5 w-4.5 text-white" style={{ height: '18px', width: '18px' }} />
           </div>
+          <span className="text-lg font-bold text-gray-900 tracking-tight">GoTime</span>
+        </div>
 
+        <div className="w-full max-w-[400px]">
+
+          {/* ── Credentials step ── */}
           {step === 'credentials' && (
-            <div className="animate-fade-in">
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">Welcome back</h1>
-              <p className="text-sm text-gray-500 mb-8">Sign in to your GoTime account</p>
+            <div>
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Welcome back</h2>
+                <p className="mt-1 text-sm text-gray-500">Sign in to your GoTime account to continue</p>
+              </div>
 
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="email" className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="you@gotime.com"
-                      autoComplete="email"
-                      className="h-10 bg-gray-50 border-gray-200 focus:bg-white"
-                      {...register('email')}
-                    />
-                    {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <form onSubmit={handleSubmit(onSubmit)}>
+                  <div className="p-6 space-y-5">
+
+                    <div className="space-y-1.5">
+                      <Label htmlFor="email" className="text-xs font-semibold text-gray-500 uppercase tracking-widest">
+                        Email Address
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="you@gotime.com"
+                        autoComplete="email"
+                        className="h-11 bg-gray-50/80 border-gray-200 focus:bg-white text-sm"
+                        {...register('email')}
+                      />
+                      {errors.email && (
+                        <p className="text-xs text-red-500 flex items-center gap-1">
+                          <span className="h-1 w-1 rounded-full bg-red-500 inline-block" />
+                          {errors.email.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label htmlFor="password" className="text-xs font-semibold text-gray-500 uppercase tracking-widest">
+                        Password
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="password"
+                          type={showPassword ? 'text' : 'password'}
+                          autoComplete="current-password"
+                          className="h-11 bg-gray-50/80 border-gray-200 focus:bg-white text-sm pr-10"
+                          {...register('password')}
+                        />
+                        <button
+                          type="button"
+                          tabIndex={-1}
+                          onClick={() => setShowPassword((v) => !v)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                          {showPassword
+                            ? <EyeOff className="h-4 w-4" />
+                            : <Eye className="h-4 w-4" />
+                          }
+                        </button>
+                      </div>
+                      {errors.password && (
+                        <p className="text-xs text-red-500 flex items-center gap-1">
+                          <span className="h-1 w-1 rounded-full bg-red-500 inline-block" />
+                          {errors.password.message}
+                        </p>
+                      )}
+                    </div>
+
+                    {error && (
+                      <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600 flex items-start gap-2.5">
+                        <svg className="h-4 w-4 shrink-0 mt-0.5 text-red-500" fill="none" viewBox="0 0 16 16">
+                          <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5"/>
+                          <path d="M8 5v3.5M8 11h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                        </svg>
+                        {error}
+                      </div>
+                    )}
                   </div>
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor="password" className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      autoComplete="current-password"
-                      className="h-10 bg-gray-50 border-gray-200 focus:bg-white"
-                      {...register('password')}
-                    />
-                    {errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
+                  <div className="px-6 pb-6">
+                    <Button
+                      type="submit"
+                      className="w-full h-11 text-sm font-semibold gap-2 shadow-sm shadow-brand-600/20"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting
+                        ? <><Loader2 className="h-4 w-4 animate-spin" /> Signing in…</>
+                        : <><span>Sign in</span><ArrowRight className="h-4 w-4" /></>
+                      }
+                    </Button>
                   </div>
+                </form>
+              </div>
+
+              <p className="mt-6 text-center text-xs text-gray-400">
+                Access is restricted to authorized GoTime staff only.
+              </p>
+            </div>
+          )}
+
+          {/* ── MFA step ── */}
+          {step === 'mfa' && (
+            <div>
+              <div className="mb-8">
+                <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-brand-50 border border-brand-100 mb-4">
+                  <ShieldCheck className="h-6 w-6 text-brand-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Two-Factor Auth</h2>
+                <p className="mt-1 text-sm text-gray-500">Enter the 6-digit code from your authenticator app</p>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="p-6 space-y-5">
+                  {/* Code dots indicator */}
+                  <div className="flex justify-center gap-2 mb-2">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={`h-2 w-2 rounded-full transition-all duration-150 ${
+                          i < mfaCode.length ? 'bg-brand-600 scale-110' : 'bg-gray-200'
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  <Input
+                    value={mfaCode}
+                    onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="000000"
+                    className="text-center text-3xl tracking-[0.6em] font-mono h-16 bg-gray-50 border-gray-200 focus:bg-white"
+                    maxLength={6}
+                    autoFocus
+                    onKeyDown={(e) => e.key === 'Enter' && mfaCode.length === 6 && onMfaSubmit()}
+                  />
 
                   {error && (
-                    <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2.5 text-sm text-red-600">
+                    <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600 flex items-start gap-2.5">
+                      <svg className="h-4 w-4 shrink-0 mt-0.5 text-red-500" fill="none" viewBox="0 0 16 16">
+                        <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5"/>
+                        <path d="M8 5v3.5M8 11h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                      </svg>
                       {error}
                     </div>
                   )}
 
-                  <Button type="submit" className="w-full h-10 mt-1" disabled={isSubmitting}>
-                    {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Sign in'}
+                  <Button
+                    className="w-full h-11 text-sm font-semibold gap-2 shadow-sm shadow-brand-600/20"
+                    onClick={onMfaSubmit}
+                    disabled={mfaCode.length !== 6 || mfaLoading}
+                  >
+                    {mfaLoading
+                      ? <><Loader2 className="h-4 w-4 animate-spin" /> Verifying…</>
+                      : <><ShieldCheck className="h-4 w-4" /><span>Verify Code</span></>
+                    }
                   </Button>
-                </form>
+                </div>
+
+                <div className="px-6 pb-5 border-t border-gray-100 pt-4 bg-gray-50/60">
+                  <button
+                    type="button"
+                    className="w-full text-xs text-gray-400 hover:text-gray-700 transition-colors font-medium"
+                    onClick={() => { setStep('credentials'); setMfaCode(''); setError(null) }}
+                  >
+                    ← Back to sign in
+                  </button>
+                </div>
               </div>
             </div>
           )}
 
-          {step === 'mfa' && (
-            <div className="animate-fade-in">
-              <div className="flex items-center gap-2 mb-1">
-                <ShieldCheck className="h-5 w-5 text-brand-600" />
-                <h1 className="text-2xl font-bold text-gray-900">Two-Factor Auth</h1>
-              </div>
-              <p className="text-sm text-gray-500 mb-8">Enter the 6-digit code from your authenticator app</p>
-
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-4">
-                <Input
-                  value={mfaCode}
-                  onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="000000"
-                  className="text-center text-2xl tracking-[0.5em] font-mono h-14 bg-gray-50"
-                  maxLength={6}
-                  autoFocus
-                  onKeyDown={(e) => e.key === 'Enter' && mfaCode.length === 6 && onMfaSubmit()}
-                />
-
-                {error && (
-                  <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2.5 text-sm text-red-600">
-                    {error}
-                  </div>
-                )}
-
-                <Button className="w-full h-10" onClick={onMfaSubmit} disabled={mfaCode.length !== 6 || mfaLoading}>
-                  {mfaLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Verify'}
-                </Button>
-
-                <button
-                  type="button"
-                  className="w-full text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                  onClick={() => { setStep('credentials'); setMfaCode(''); setError(null) }}
-                >
-                  ← Back to sign in
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
