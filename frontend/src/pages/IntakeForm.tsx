@@ -236,6 +236,16 @@ export function IntakeForm() {
 
   const selectedClient = clients.find((c) => c.id === clientId)
 
+  useEffect(() => {
+    if (!selectedClient) return
+    if (selectedClient.default_pay_source_id) {
+      setValue('pay_source_id', selectedClient.default_pay_source_id)
+    }
+    if (selectedClient.mobility_level) {
+      setValue('mobility_level', selectedClient.mobility_level)
+    }
+  }, [clientId, selectedClient, setValue])
+
   const filteredRequestors = facilityId
     ? allRequestors.filter((r) => r.facility_id === facilityId)
     : allRequestors.filter((r) => !r.facility_id)
