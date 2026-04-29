@@ -156,8 +156,7 @@ export function Clients() {
     }
   }
 
-  const facilityMap   = Object.fromEntries(facilities.map((f) => [f.id, f.name]))
-  const paySourceMap  = Object.fromEntries(paySources.map((p) => [p.id, p.name]))
+  const facilityMap = Object.fromEntries(facilities.map((f) => [f.id, f.name]))
 
   const filtered = clients.filter((c) => {
     if (!search) return true

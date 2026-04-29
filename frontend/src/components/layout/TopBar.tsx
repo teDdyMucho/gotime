@@ -1,4 +1,4 @@
-import { LogOut, Bell } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { signOut } from '@/lib/auth'
 import { useAuth } from '@/hooks/useAuth'

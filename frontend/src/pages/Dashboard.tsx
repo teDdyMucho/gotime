@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { metricsApi, facilitiesApi } from '@/lib/api'
-import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
 import type { MetricsSummary, RevenueMetrics, QualityMetrics, Facility } from '@/lib/types'
 import {
