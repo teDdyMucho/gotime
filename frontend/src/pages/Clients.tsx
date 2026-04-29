@@ -82,8 +82,8 @@ export function Clients() {
   })
 
   const { data: paySources = [] } = useQuery<PaySource[]>({
-    queryKey: ['pay-sources'],
-    queryFn: async () => (await paySourcesApi.list()).data,
+    queryKey: ['pay-sources', 'active'],
+    queryFn: async () => (await paySourcesApi.list({ status: 'active' })).data,
   })
 
   const createMutation = useMutation({
