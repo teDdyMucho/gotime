@@ -209,6 +209,7 @@ async def review_trip(
         requestor_id=trip["requestor_id"],
         preferred_method=preferred_method,
         decline_reason=body.decline_reason,
+        sent_by=user["user_id"],
     )
     return result.data[0]
 
@@ -247,5 +248,6 @@ async def cancel_trip(
         requestor_id=trip["requestor_id"],
         preferred_method=preferred_method,
         cancellation_reason=body.cancellation_reason,
+        sent_by=user["user_id"],
     )
     return result.data[0]
