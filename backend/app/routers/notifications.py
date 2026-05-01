@@ -29,11 +29,19 @@ async def manual_notify(
     if not trip.data:
         raise HTTPException(status_code=404, detail="Trip not found")
 
-    recipient_ids = body.recipient_ids or [trip.data[0]["requestor_id"]]
+    requestor_id = trip.data[0]["requestor_id"]
+    recipient_ids = body.recipient_ids or [requestor_id]
+
+    requestor = db.table("requestors").select("preferred_notification_method").eq("id", requestor_id).execute()
+    preferred_method = requestor.data[0]["preferred_notification_method"] if requestor.data else "email"
+
     await trigger_manual_alert(
         message_type=body.message_type,
         recipient_ids=recipient_ids,
         trip_id=str(trip_id),
+        requestor_id=requestor_id,
+        preferred_method=preferred_method,
+        sent_by=user["user_id"],
     )
     return {"status": "notification triggered", "trip_id": str(trip_id)}
 
