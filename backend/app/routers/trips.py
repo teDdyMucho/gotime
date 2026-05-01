@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from uuid import UUID
 from datetime import datetime, timezone
+from typing import Optional
 import csv, io
 from app.models.trip import TripCreate, TripReviewAction, TripCancelAction, TripResponse
 from app.core.security import require_intake_or_above, require_dispatcher_or_above
@@ -40,7 +41,7 @@ def list_trips(
     facility_id: str = Query(""),
     pay_source_id: str = Query(""),
     urgency_level: str = Query(""),
-    missing_info_flag: bool = Query(None),
+    missing_info_flag: Optional[bool] = Query(None),
     trip_date: str = Query(""),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, le=200),
