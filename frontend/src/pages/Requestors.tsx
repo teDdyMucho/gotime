@@ -18,6 +18,7 @@ import {
   CheckCircle2, XCircle, AlertTriangle, Loader2, Search,
   MessageSquare, Inbox, StickyNote,
 } from 'lucide-react'
+import { SmsConsentCheckbox } from '@/components/ui/SmsConsentCheckbox'
 
 const NOTIFY_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
   email: { label: 'Email',    color: 'text-blue-700',   bg: 'bg-blue-50',   border: 'border-blue-200' },
@@ -31,9 +32,15 @@ const schema = z.object({
   phone: z.string().optional(),
   email: z.string().email().optional().or(z.literal('')),
   preferred_notification_method: z.enum(['sms', 'email', 'both']),
+  sms_consent: z.boolean().optional(),
   facility_id: z.string().uuid('Select a facility'),
   status: z.enum(['active', 'inactive']),
   notes: z.string().optional(),
+}).superRefine((data, ctx) => {
+  const needsSms = data.preferred_notification_method === 'sms' || data.preferred_notification_method === 'both'
+  if (needsSms && !data.sms_consent) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['sms_consent'], message: 'SMS consent is required when SMS notifications are enabled.' })
+  }
 })
 
 type FormData = z.infer<typeof schema>
@@ -103,26 +110,32 @@ export function Requestors() {
     },
   })
 
-  const { register, handleSubmit, control, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, control, reset, watch, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { preferred_notification_method: 'email', status: 'active' },
+    defaultValues: { preferred_notification_method: 'email', status: 'active', sms_consent: false },
   })
+
+  const notifyMethod = watch('preferred_notification_method')
+  const smsConsent   = watch('sms_consent')
+  const needsSms     = notifyMethod === 'sms' || notifyMethod === 'both'
 
   function openCreate() {
     setEditing(null)
-    reset({ preferred_notification_method: 'email', status: 'active' })
+    reset({ preferred_notification_method: 'email', status: 'active', sms_consent: false })
     setApiError(null)
     setDialogOpen(true)
   }
 
   function openEdit(r: Requestor) {
     setEditing(r)
+    const hasSms = r.preferred_notification_method === 'sms' || r.preferred_notification_method === 'both'
     reset({
       name: r.name,
       title_department: r.title_department ?? undefined,
       phone: r.phone ?? undefined,
       email: r.email ?? '',
       preferred_notification_method: r.preferred_notification_method,
+      sms_consent: hasSms,
       facility_id: r.facility_id,
       status: r.status,
       notes: r.notes ?? undefined,
@@ -450,7 +463,10 @@ export function Requestors() {
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Notification Method">
                   <Controller name="preferred_notification_method" control={control} render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value} onValueChange={(v) => {
+                      field.onChange(v)
+                      if (v === 'email') setValue('sms_consent', false)
+                    }}>
                       <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="email">Email</SelectItem>
@@ -472,6 +488,15 @@ export function Requestors() {
                   )} />
                 </Field>
               </div>
+
+              {/* SMS consent — shown only when SMS is selected */}
+              {needsSms && (
+                <SmsConsentCheckbox
+                  checked={!!smsConsent}
+                  onChange={(v) => setValue('sms_consent', v, { shouldValidate: true })}
+                  error={errors.sms_consent?.message}
+                />
+              )}
 
               {/* Notes */}
               <Field label="Notes">

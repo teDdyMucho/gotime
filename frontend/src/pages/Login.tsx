@@ -12,6 +12,9 @@ import { Label } from '@/components/ui/label'
 const schema = z.object({
   email: z.string().email('Enter a valid email'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
+  agreedToTerms: z.literal(true, {
+    errorMap: () => ({ message: 'You must agree to the Terms & Conditions and Privacy Policy to continue.' }),
+  }),
 })
 type FormData = z.infer<typeof schema>
 type Step = 'credentials' | 'mfa'
@@ -31,12 +34,19 @@ export function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError]             = useState<string | null>(null)
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: { agreedToTerms: undefined },
   })
+
+  const agreedToTerms = watch('agreedToTerms')
 
   async function onSubmit(data: FormData) {
     setError(null)
+    if (!data.agreedToTerms) {
+      setError('You must agree to the Terms & Conditions and Privacy Policy to continue.')
+      return
+    }
     try {
       await signIn(data.email, data.password)
       if (!supabase) { navigate('/queue'); return }
@@ -234,11 +244,54 @@ export function Login() {
                     )}
                   </div>
 
-                  <div className="px-6 pb-6">
+                  {/* Terms & sign-in consent + button */}
+                  <div className="px-6 pt-3 pb-2">
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <div className="relative mt-0.5 shrink-0">
+                        <input
+                          type="checkbox"
+                          className="peer sr-only"
+                          {...register('agreedToTerms')}
+                        />
+                        <div className={[
+                          'h-4 w-4 rounded border-2 flex items-center justify-center transition-all',
+                          agreedToTerms
+                            ? 'bg-brand-600 border-brand-600'
+                            : errors.agreedToTerms
+                              ? 'bg-white border-red-400'
+                              : 'bg-white border-gray-300 group-hover:border-brand-400',
+                        ].join(' ')}>
+                          {agreedToTerms && (
+                            <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 12 12">
+                              <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                      <span className="text-xs text-gray-500 leading-relaxed">
+                        I agree to the{' '}
+                        <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:text-brand-700 font-medium underline-offset-2 hover:underline transition-colors">
+                          Terms & Conditions
+                        </a>
+                        {' '}and{' '}
+                        <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:text-brand-700 font-medium underline-offset-2 hover:underline transition-colors">
+                          Privacy Policy
+                        </a>
+                      </span>
+                    </label>
+                    {errors.agreedToTerms && (
+                      <p className="mt-2 text-xs text-red-500 flex items-center gap-1.5">
+                        <span className="h-1 w-1 rounded-full bg-red-500 inline-block shrink-0" />
+                        {errors.agreedToTerms.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="px-6 pt-3 pb-6">
                     <Button
                       type="submit"
                       className="w-full h-11 text-sm gap-2"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !agreedToTerms}
                     >
                       {isSubmitting
                         ? <><Loader2 className="h-4 w-4 animate-spin" /> Signing in…</>

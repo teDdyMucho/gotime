@@ -3,6 +3,10 @@ import { useAuth } from '@/hooks/useAuth'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Login } from '@/pages/Login'
 import { MfaSetup } from '@/pages/MfaSetup'
+import { TermsPage } from '@/pages/TermsPage'
+import { PrivacyPage } from '@/pages/PrivacyPage'
+import { Register } from '@/pages/Register'
+import { SmsOptOut } from '@/pages/SmsOptOut'
 import { IntakeForm } from '@/pages/IntakeForm'
 import { DispatcherQueue } from '@/pages/DispatcherQueue'
 import { TripDetail } from '@/pages/TripDetail'
@@ -38,6 +42,10 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/mfa-setup" element={<MfaSetup />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/opt-out" element={<SmsOptOut />} />
+        <Route path="/terms-and-conditions" element={<TermsPage />} />
+        <Route path="/privacy-policy" element={<PrivacyPage />} />
 
         <Route
           path="/"

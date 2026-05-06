@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Combobox } from '@/components/ui/combobox'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Plus, Trash2, User, Car, CreditCard, FileText, Send, AlertTriangle } from 'lucide-react'
+import { SmsConsentCheckbox } from '@/components/ui/SmsConsentCheckbox'
 import { formatDate } from '@/lib/utils'
 
 const schema = z.object({
@@ -75,7 +76,13 @@ const quickRequestorSchema = z.object({
   phone: z.string().optional(),
   email: z.string().email().optional().or(z.literal('')),
   preferred_notification_method: z.enum(['sms', 'email', 'both']),
+  sms_consent: z.boolean().optional(),
   facility_id: z.string().optional(),
+}).superRefine((data, ctx) => {
+  const needsSms = data.preferred_notification_method === 'sms' || data.preferred_notification_method === 'both'
+  if (needsSms && !data.sms_consent) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['sms_consent'], message: 'SMS consent is required when SMS notifications are enabled.' })
+  }
 })
 type QuickRequestorForm = z.infer<typeof quickRequestorSchema>
 
@@ -164,7 +171,7 @@ export function IntakeForm() {
       qc.invalidateQueries({ queryKey: ['requestors'] })
       setValue('requestor_id', newRequestor.id)
       setQuickRequestorOpen(false)
-      resetRequestor({ preferred_notification_method: 'email' })
+      resetRequestor({ preferred_notification_method: 'email', sms_consent: false })
     },
   })
 
@@ -203,11 +210,16 @@ export function IntakeForm() {
     useForm<QuickClientForm>({ resolver: zodResolver(quickClientSchema) })
 
   const { register: regRequestor, handleSubmit: handleRequestor, reset: resetRequestor,
+    watch: watchRequestor, setValue: setRequestorValue, control: controlRequestor,
     formState: { errors: requestorErrors, isSubmitting: requestorSubmitting } } =
     useForm<QuickRequestorForm>({
       resolver: zodResolver(quickRequestorSchema),
-      defaultValues: { preferred_notification_method: 'email' },
+      defaultValues: { preferred_notification_method: 'email', sms_consent: false },
     })
+
+  const quickNotifyMethod = watchRequestor('preferred_notification_method')
+  const quickSmsConsent   = watchRequestor('sms_consent')
+  const quickNeedsSms     = quickNotifyMethod === 'sms' || quickNotifyMethod === 'both'
 
   const { register: regFacility, handleSubmit: handleFacility, reset: resetFacility,
     formState: { errors: facilityErrors, isSubmitting: facilitySubmitting } } =
@@ -350,7 +362,7 @@ export function IntakeForm() {
                       <Button type="button" variant="outline" size="icon" className="shrink-0" title="Quick-add requestor"
                         onClick={() => {
                           setRequestorFacilityId(facilityId !== 'na' ? facilityId : '')
-                          resetRequestor({ preferred_notification_method: 'email' })
+                          resetRequestor({ preferred_notification_method: 'email', sms_consent: false })
                           setQuickRequestorOpen(true)
                         }}>
                         <Plus className="h-4 w-4" />
@@ -708,6 +720,31 @@ export function IntakeForm() {
                 <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Email</Label>
                 <Input {...regRequestor('email')} type="email" />
               </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Notification Method</Label>
+                <Controller name="preferred_notification_method" control={controlRequestor} render={({ field }) => (
+                  <Select value={field.value} onValueChange={(v) => {
+                    field.onChange(v)
+                    if (v === 'email') setRequestorValue('sms_consent', false)
+                  }}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="email">Email</SelectItem>
+                      <SelectItem value="sms">SMS</SelectItem>
+                      <SelectItem value="both">Email + SMS</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )} />
+              </div>
+              {quickNeedsSms && (
+                <SmsConsentCheckbox
+                  checked={!!quickSmsConsent}
+                  onChange={(v) => setRequestorValue('sms_consent', v, { shouldValidate: true })}
+                  error={requestorErrors.sms_consent?.message}
+                />
+              )}
               {quickRequestorMutation.isError && <p className="text-xs text-red-500">Failed to create requestor</p>}
             </div>
             <DialogFooter>
