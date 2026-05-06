@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from uuid import UUID
 from datetime import datetime, timezone
+from typing import Optional
 import csv, io
 from app.models.trip import TripCreate, TripReviewAction, TripCancelAction, TripResponse
 from app.core.security import require_intake_or_above, require_dispatcher_or_above
@@ -40,7 +41,7 @@ def list_trips(
     facility_id: str = Query(""),
     pay_source_id: str = Query(""),
     urgency_level: str = Query(""),
-    missing_info_flag: bool = Query(None),
+    missing_info_flag: Optional[bool] = Query(None),
     trip_date: str = Query(""),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, le=200),
@@ -208,6 +209,7 @@ async def review_trip(
         requestor_id=trip["requestor_id"],
         preferred_method=preferred_method,
         decline_reason=body.decline_reason,
+        sent_by=user["user_id"],
     )
     return result.data[0]
 
@@ -246,5 +248,6 @@ async def cancel_trip(
         requestor_id=trip["requestor_id"],
         preferred_method=preferred_method,
         cancellation_reason=body.cancellation_reason,
+        sent_by=user["user_id"],
     )
     return result.data[0]

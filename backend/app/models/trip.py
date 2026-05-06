@@ -1,6 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from uuid import UUID
-from typing import Optional, Literal
+from typing import Optional, Literal, Any
 from datetime import date, time, datetime
 from decimal import Decimal
 
@@ -124,6 +124,13 @@ class TripResponse(BaseModel):
     final_revenue: Optional[Decimal] = None
     created_at: datetime
     updated_at: datetime
+
+    @field_validator('appointment_time', 'requested_pickup_time', mode='before')
+    @classmethod
+    def strip_time_tz(cls, v: Any) -> Any:
+        if isinstance(v, str) and '+' in v:
+            return v.split('+')[0]
+        return v
 
     class Config:
         from_attributes = True
