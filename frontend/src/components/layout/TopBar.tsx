@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { signOut } from '@/lib/auth'
 import { useAuth } from '@/hooks/useAuth'
-import { LogOut, Settings, User, Shield, ChevronDown, X } from 'lucide-react'
+import { LogOut, Settings, Shield, ChevronDown, X } from 'lucide-react'
 
 const PAGE_TITLES: Record<string, { title: string; sub: string }> = {
   '/intake':        { title: 'New Trip Request',  sub: 'Create a new transport request' },
