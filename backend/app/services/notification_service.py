@@ -153,7 +153,6 @@ async def trigger_manual_alert(
         "requestor_email": requestor_data.get("email"),
         "method": requestor_data.get("preferred_notification_method", preferred_method),
         "message": custom_message,
-        "custom_message": custom_message,
     }
     await _post_webhook(url, payload)
 
