@@ -40,7 +40,11 @@ class Settings(BaseSettings):
     n8n_trip_decision_webhook: str = "/webhook/gotime-trip-decision-mainconnection"
     n8n_trip_canceled_webhook: str = "/webhook/tripcancelled-mainconnection"
     n8n_manual_alert_webhook: str = "/webhook/gotime-manual-alert-mainconnection"
+<<<<<<< HEAD
     n8n_api_key: str = ""
+=======
+    n8n_api_key: str = "lsaiduhasoiduyasodj123123"
+>>>>>>> c5d17c11ff5b0edcf3ce622bbbfc3dffe4c21efa
 
     @property
     def origins_list(self) -> list[str]:

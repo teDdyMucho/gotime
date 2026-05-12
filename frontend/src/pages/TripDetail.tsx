@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import {
   ArrowLeft, AlertTriangle, Bell, Phone, Mail, MapPin, Calendar,
-  User, Building2, CreditCard, CheckCircle2, Clock, Car, FileText, Hash, Loader2,
+  User, Building2, CreditCard, CheckCircle2, Clock, Car, FileText, Hash,
 } from 'lucide-react'
 import { formatDate, formatDateTime, formatCurrency, formatTime } from '@/lib/utils'
 
