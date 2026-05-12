@@ -36,10 +36,10 @@ class Settings(BaseSettings):
     sendgrid_template_general_alert: str = ""
 
     # n8n
-    n8n_webhook_base_url: str = ""
-    n8n_trip_decision_webhook: str = "/webhook/gotime-trip-decision"
-    n8n_trip_canceled_webhook: str = "/webhook/gotime-trip-canceled"
-    n8n_manual_alert_webhook: str = "/webhook/gotime-manual-alert"
+    n8n_webhook_base_url: str = "https://n8n.tamfco.com"
+    n8n_trip_decision_webhook: str = "/webhook/gotime-trip-decision-mainconnection"
+    n8n_trip_canceled_webhook: str = "/webhook/tripcancelled-mainconnection"
+    n8n_manual_alert_webhook: str = "/webhook/gotime-manual-alert-mainconnection"
     n8n_api_key: str = ""
 
     @property

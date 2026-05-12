@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import {
   ArrowLeft, AlertTriangle, Bell, Phone, Mail, MapPin, Calendar,
-  User, Building2, CreditCard, CheckCircle2, Clock, Car, FileText, Hash,
+  User, Building2, CreditCard, CheckCircle2, Clock, Car, FileText, Hash, Loader2,
 } from 'lucide-react'
 import { formatDate, formatDateTime, formatCurrency, formatTime } from '@/lib/utils'
 
@@ -118,6 +118,7 @@ export function TripDetail() {
   const [reviewDialog, setReviewDialog]               = useState<'accept' | 'decline' | 'return' | null>(null)
   const [cancelDialog, setCancelDialog]               = useState(false)
   const [notifyDialog, setNotifyDialog]               = useState(false)
+  const [manualAlertMessage, setManualAlertMessage]   = useState('')
   const [declineReason, setDeclineReason]             = useState('')
   const [clarificationReason, setClarificationReason] = useState('')
   const [cancelReason, setCancelReason]               = useState('')
@@ -194,7 +195,13 @@ export function TripDetail() {
     setNotifyDialog(false)
     setProcessingLabel('Sending notification…')
     try {
-      await tripsApi.notify(id, { message_type: notifyType })
+      await tripsApi.notify(id, {
+        message_type: notifyType,
+        ...(notifyType === 'manual_alert' && manualAlertMessage.trim()
+          ? { custom_message: manualAlertMessage.trim() }
+          : {}),
+      })
+      setManualAlertMessage('')
       setActionSuccess('Notification sent!')
       setTimeout(() => setActionSuccess(null), 3000)
     } catch (err) {
@@ -569,7 +576,7 @@ export function TripDetail() {
             )}
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Notification Type</Label>
-              <Select value={notifyType} onValueChange={setNotifyType}>
+              <Select value={notifyType} onValueChange={(v) => { setNotifyType(v); setManualAlertMessage('') }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="trip_decision">Trip Decision</SelectItem>
@@ -579,13 +586,32 @@ export function TripDetail() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="rounded-lg bg-blue-50 border border-blue-100 px-3 py-2.5 text-xs text-blue-700">
-              <strong>Preview (SMS):</strong> "Your trip request (ID: {id?.slice(0, 8)}…) status has been updated."
-            </div>
+            {notifyType === 'manual_alert' ? (
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Custom Message <span className="text-red-400">*</span></Label>
+                <Textarea
+                  value={manualAlertMessage}
+                  onChange={(e) => setManualAlertMessage(e.target.value)}
+                  placeholder="Type your custom message to the requestor…"
+                  rows={4}
+                  className="resize-none text-sm"
+                />
+                <p className="text-[11px] text-gray-400">{manualAlertMessage.length} characters</p>
+              </div>
+            ) : (
+              <div className="rounded-lg bg-blue-50 border border-blue-100 px-3 py-2.5 text-xs text-blue-700">
+                <strong>Preview (SMS):</strong> "Your trip request (ID: {id?.slice(0, 8)}…) status has been updated."
+              </div>
+            )}
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setNotifyDialog(false)}>Close</Button>
-            <Button size="sm" onClick={handleNotify} disabled={notifySent} className="gap-1.5">
+            <Button variant="outline" size="sm" onClick={() => { setNotifyDialog(false); setManualAlertMessage(''); setNotifyType('trip_decision') }}>Close</Button>
+            <Button
+              size="sm"
+              onClick={handleNotify}
+              disabled={notifyType === 'manual_alert' ? !manualAlertMessage.trim() : notifySent}
+              className="gap-1.5"
+            >
               <Bell className="h-3.5 w-3.5" /> Send
             </Button>
           </DialogFooter>

@@ -110,23 +110,50 @@ async def trigger_manual_alert(
     requestor_id: str = "",
     preferred_method: str = "email",
     sent_by: str = "",
+    custom_message: str | None = None,
 ) -> None:
     """POST to n8n manual-alert webhook."""
     notification_type = _MESSAGE_TYPE_MAP.get(message_type, "general")
+    preview = custom_message if custom_message else f"Manual alert — {message_type.replace('_', ' ')}"
     log_notification(
         trip_id=trip_id or "",
         requestor_id=requestor_id,
         notification_type=notification_type,
         method=preferred_method,
         sent_by=sent_by,
-        message_preview=f"Manual alert — {message_type.replace('_', ' ')}",
+        message_preview=preview,
     )
 
     url = f"{settings.n8n_webhook_base_url}{settings.n8n_manual_alert_webhook}"
+
+    # Fetch requestor details to include in payload for n8n
+    from app.db.supabase import get_supabase
+    db = get_supabase()
+    requestor_data = {}
+    if requestor_id:
+        r = db.table("requestors").select("name,phone,email,preferred_notification_method").eq("id", requestor_id).execute()
+        if r.data:
+            requestor_data = r.data[0]
+
+    # Fetch trip details
+    trip_data = {}
+    if trip_id:
+        t = db.table("trip_requests").select("trip_date,appointment_type,client_id,facility_id").eq("id", trip_id).execute()
+        if t.data:
+            trip_data = t.data[0]
+
     payload = {
         "message_type": message_type,
         "recipient_ids": recipient_ids,
         "trip_id": trip_id,
+        "trip_date": trip_data.get("trip_date"),
+        "requestor_id": requestor_id,
+        "requestor_name": requestor_data.get("name"),
+        "requestor_phone": requestor_data.get("phone"),
+        "requestor_email": requestor_data.get("email"),
+        "method": requestor_data.get("preferred_notification_method", preferred_method),
+        "message": custom_message,
+        "custom_message": custom_message,
     }
     await _post_webhook(url, payload)
 
@@ -137,9 +164,6 @@ async def _post_webhook(url: str, payload: dict) -> None:
     headers = {}
     if settings.n8n_api_key:
         headers["X-N8N-API-KEY"] = settings.n8n_api_key
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.post(url, json=payload, headers=headers)
-            response.raise_for_status()
-    except Exception:
-        pass
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        response = await client.post(url, json=payload, headers=headers)
+        response.raise_for_status()

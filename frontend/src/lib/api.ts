@@ -71,7 +71,7 @@ export const tripsApi = {
     api.patch(`/trips/${id}/review`, data),
   cancel: (id: string, data: { cancellation_reason: string; review_notes?: string }) =>
     api.patch(`/trips/${id}/cancel`, data),
-  notify: (id: string, data: { message_type: string; recipient_ids?: string[] }) =>
+  notify: (id: string, data: { message_type: string; recipient_ids?: string[]; custom_message?: string }) =>
     api.post(`/trips/${id}/notify`, data),
   export: (params?: Record<string, string>) =>
     api.get('/trips/export', { params, responseType: 'blob' }),

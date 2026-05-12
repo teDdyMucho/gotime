@@ -16,6 +16,7 @@ log_router = APIRouter(prefix="/notifications", tags=["Notification Log"])
 class ManualNotifyRequest(BaseModel):
     message_type: str
     recipient_ids: Optional[List[str]] = None
+    custom_message: Optional[str] = None
 
 
 @router.post("/{trip_id}/notify")
@@ -42,6 +43,7 @@ async def manual_notify(
         requestor_id=requestor_id,
         preferred_method=preferred_method,
         sent_by=user["user_id"],
+        custom_message=body.custom_message,
     )
     return {"status": "notification triggered", "trip_id": str(trip_id)}
 
