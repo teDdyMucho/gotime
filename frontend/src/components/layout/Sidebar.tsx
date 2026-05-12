@@ -93,22 +93,6 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* User footer */}
-      <div className="px-4 py-3.5 border-t border-white/8">
-        <div className="flex items-center gap-2.5">
-          <div className="h-7 w-7 rounded-full bg-brand-600/30 flex items-center justify-center shrink-0">
-            <span className="text-[11px] font-semibold text-brand-400">
-              {user?.email?.[0]?.toUpperCase() ?? 'U'}
-            </span>
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs text-white/60 truncate leading-tight">{user?.email}</p>
-            <p className="text-[10px] font-medium text-white/35 capitalize leading-tight mt-0.5">
-              {user?.role.replace(/_/g, ' ')}
-            </p>
-          </div>
-        </div>
-      </div>
     </aside>
   )
 }

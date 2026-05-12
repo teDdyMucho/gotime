@@ -223,20 +223,6 @@ export function TopBar() {
                       </div>
                     )}
 
-                    {/* Avatar section */}
-                    <div className="flex items-center gap-5 p-5 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-2xl border border-gray-100">
-                      <div className="h-16 w-16 rounded-full bg-brand-600 flex items-center justify-center shrink-0 shadow-lg shadow-brand-600/20">
-                        <span className="text-2xl font-bold text-white">{user?.email?.[0]?.toUpperCase() ?? 'U'}</span>
-                      </div>
-                      <div>
-                        <p className="text-base font-bold text-gray-900">{user?.email}</p>
-                        <div className="flex items-center gap-1.5 mt-1">
-                          <Shield className="h-3.5 w-3.5 text-brand-600" />
-                          <p className="text-xs font-semibold text-brand-700 capitalize">{user?.role?.replace(/_/g, ' ')}</p>
-                        </div>
-                      </div>
-                    </div>
-
                     {/* Fields */}
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
