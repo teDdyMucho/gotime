@@ -16,5 +16,5 @@ jobs:
 
       - name: Push to backup
         run: |
-          git remote add backup https://${{ secrets.BACKUP_TOKEN }}@github.com/gotime-transportation/gotime.git
-          git push backup main --force
+          git remote add backup https://x-access-token:${{ secrets.BACKUP_TOKEN }}@github.com/gotime-transportation/gotime.git
+          git push backup refs/heads/main:refs/heads/main --force
