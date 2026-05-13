@@ -52,78 +52,83 @@ function DetailModal({ log, requestorName, tripLabel, clientName, onClose }: Det
   const StatusIcon = statusConf?.icon
   const MethodIcon = methodConf?.icon
 
-  const rows: { label: string; value: React.ReactNode }[] = [
-    { label: 'Sent At',    value: formatDateTime(log.created_at) },
-    { label: 'Recipient',  value: requestorName ?? '—' },
-    { label: 'Client',     value: clientName ?? '—' },
-    { label: 'Trip',       value: tripLabel ?? '—' },
-    {
-      label: 'Type',
-      value: (
-        <span className={`inline-flex items-center px-2 py-0.5 rounded-md border text-[11px] font-semibold ${typeConf.bg} ${typeConf.color} ${typeConf.border}`}>
-          {typeConf.label}
-        </span>
-      ),
-    },
-    {
-      label: 'Method',
-      value: methodConf && MethodIcon ? (
-        <div className="flex items-center gap-1.5">
-          <MethodIcon className={`h-3.5 w-3.5 ${methodConf.color}`} />
-          <span className="text-xs text-gray-700">{methodConf.label}</span>
-        </div>
-      ) : '—',
-    },
-    {
-      label: 'Status',
-      value: statusConf && StatusIcon ? (
-        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[11px] font-semibold ${statusConf.bg} ${statusConf.color} ${statusConf.border}`}>
-          <StatusIcon className="h-3 w-3" />
-          {statusConf.label}
-        </span>
-      ) : '—',
-    },
-    { label: 'Preview', value: (() => {
-      const raw = log.message_preview as string | null
-      if (!raw) return '—'
-      const map: Record<string, string> = { manual_alert: 'General Alert', trip_decision: 'Trip Update', canceled: 'Trip Canceled' }
-      return map[raw] ?? raw
-    })() },
-  ]
+  const previewLabel = (() => {
+    const raw = log.message_preview as string | null
+    if (!raw) return '—'
+    const map: Record<string, string> = { manual_alert: 'General Alert', trip_decision: 'Trip Update', canceled: 'Trip Canceled' }
+    return map[raw] ?? raw
+  })()
 
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-md p-0 overflow-hidden" aria-describedby={undefined}>
+      <DialogContent className="max-w-lg p-0 overflow-hidden" aria-describedby={undefined}>
 
-        {/* Green top stripe */}
-        <div className="h-1 w-full bg-brand-600" />
-
-        {/* Header */}
-        <DialogHeader className="px-6 pt-5 pb-4 border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center shrink-0">
-              <Bell className="h-4 w-4 text-brand-600" />
-            </div>
+        {/* Header with dark bg like email letterhead */}
+        <div className="bg-brand-600 px-6 py-5">
+          <DialogTitle className="sr-only">Notification Details</DialogTitle>
+          <div className="flex items-start justify-between">
             <div>
-              <DialogTitle className="text-sm font-bold text-gray-900 leading-tight">Notification Details</DialogTitle>
-              <p className="text-[11px] text-gray-400 mt-0.5 uppercase tracking-widest font-medium">Delivery Record</p>
+              <p className="text-[10px] font-bold text-brand-200 uppercase tracking-[2px] mb-1">GoTime Transportation</p>
+              <h2 className="text-lg font-bold text-white leading-tight">Notification Details</h2>
+              <p className="text-xs text-brand-200 mt-0.5">Dispatch Delivery Record</p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] text-brand-200 uppercase tracking-widest">Sent</p>
+              <p className="text-xs font-semibold text-white mt-0.5">{formatDateTime(log.created_at)}</p>
             </div>
           </div>
-        </DialogHeader>
+        </div>
 
-        {/* Rows */}
-        <div className="px-6 py-2 divide-y divide-gray-50">
-          {rows.map(({ label, value }) => (
-            <div key={label} className="flex items-center justify-between gap-4 py-3.5">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest shrink-0 w-20">{label}</span>
-              <span className="text-xs text-gray-700 text-right font-medium">{value}</span>
+        {/* Delivery status bar */}
+        <div className={`flex items-center gap-2 px-6 py-2.5 border-b border-gray-100 ${statusConf?.bg ?? 'bg-gray-50'}`}>
+          {statusConf && StatusIcon && <StatusIcon className={`h-3.5 w-3.5 ${statusConf.color}`} />}
+          <span className={`text-xs font-semibold ${statusConf?.color ?? 'text-gray-500'}`}>
+            {statusConf?.label ?? '—'} — {methodConf?.label ?? '—'}
+            {MethodIcon && <MethodIcon className={`inline h-3.5 w-3.5 ml-1.5 ${methodConf?.color}`} />}
+          </span>
+        </div>
+
+        {/* Content */}
+        <div className="px-6 py-5 space-y-5">
+
+          {/* Recipient & Client */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Recipient</p>
+              <p className="text-sm font-semibold text-gray-900">{requestorName ?? '—'}</p>
             </div>
-          ))}
+            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Client</p>
+              <p className="text-sm font-semibold text-gray-900">{clientName ?? '—'}</p>
+            </div>
+          </div>
+
+          {/* Trip */}
+          <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Trip</p>
+            <p className="text-sm font-semibold text-gray-900">{tripLabel ?? '—'}</p>
+          </div>
+
+          {/* Type & Preview */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Type</p>
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-lg border text-[11px] font-semibold ${typeConf.bg} ${typeConf.color} ${typeConf.border}`}>
+                {typeConf.label}
+              </span>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Alert Type</p>
+              <p className="text-sm font-semibold text-gray-900">{previewLabel}</p>
+            </div>
+          </div>
+
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/60">
-          <Button size="sm" className="w-full h-9 text-xs bg-brand-600 hover:bg-brand-700" onClick={onClose}>Close</Button>
+        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/60 flex items-center justify-between">
+          <p className="text-[11px] text-gray-400">GoTime Dispatch System</p>
+          <Button size="sm" className="h-8 px-5 text-xs bg-brand-600 hover:bg-brand-700" onClick={onClose}>Close</Button>
         </div>
 
       </DialogContent>
