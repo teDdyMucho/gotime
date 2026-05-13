@@ -5,7 +5,7 @@ import { notificationsApi, requestorsApi, tripsApi, clientsApi } from '@/lib/api
 import type { NotificationLog, Requestor, TripRequest, Client } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { RefreshCw, Mail, MessageSquare, AtSign, Bell, CheckCircle2, XCircle, Clock, Search, X } from 'lucide-react'
 import { formatDateTime } from '@/lib/utils'
 
