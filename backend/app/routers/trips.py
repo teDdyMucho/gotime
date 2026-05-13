@@ -209,6 +209,8 @@ async def review_trip(
         requestor_id=trip["requestor_id"],
         preferred_method=preferred_method,
         decline_reason=body.decline_reason,
+        clarification_reason=body.clarification_reason if body.action == "return" else None,
+        review_notes=body.review_notes,
         sent_by=user["user_id"],
     )
     return result.data[0]

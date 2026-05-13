@@ -119,6 +119,8 @@ async def trigger_trip_decision(
     requestor_id: str,
     preferred_method: str,
     decline_reason: str | None = None,
+    clarification_reason: str | None = None,
+    review_notes: str | None = None,
     sent_by: str = "",
 ) -> None:
     from app.db.supabase import get_supabase
@@ -142,15 +144,17 @@ async def trigger_trip_decision(
     message_type = _DECISION_TYPE_MAP.get(decision, "general")
 
     payload = {
-        "trip_id":         trip_id,
-        "decision":        decision,
-        "requestor_id":    requestor_id,
-        "requestor_name":  requestor_data.get("name"),
-        "requestor_phone": requestor_data.get("phone"),
-        "requestor_email": requestor_data.get("email"),
-        "trip_date":       trip_data.get("trip_date"),
+        "trip_id":                      trip_id,
+        "decision":                     decision,
+        "requestor_id":                 requestor_id,
+        "requestor_name":               requestor_data.get("name"),
+        "requestor_phone":              requestor_data.get("phone"),
+        "requestor_email":              requestor_data.get("email"),
+        "trip_date":                    trip_data.get("trip_date"),
         "preferred_notification_method": channel,
-        "decline_reason":  decline_reason,
+        "decline_reason":               decline_reason,
+        "clarification_reason":         clarification_reason,
+        "review_notes":                 review_notes,
     }
 
     url = f"{settings.n8n_webhook_base_url}{settings.n8n_trip_decision_webhook}"
