@@ -59,18 +59,17 @@ def list_notifications(
         query = query.eq("trip_id", trip_id)
     result = query.execute()
 
-    # Map DB column names to what the frontend expects
     mapped = []
     for row in result.data:
         mapped.append({
-            "id": row["id"],
-            "trip_id": row["trip_id"],
-            "requestor_id": row.get("requestor_id") or "",
-            "notification_type": row.get("notification_type") or row.get("message_type") or "general",
-            "method": row.get("method") or row.get("channel") or "email",
-            "status": row.get("status", "sent"),
-            "message_preview": row.get("message_preview") or row.get("error_detail"),
-            "sent_by": row.get("sent_by") or row.get("triggered_by") or "",
-            "created_at": row["created_at"],
+            "id":                row["id"],
+            "trip_id":           row["trip_id"],
+            "requestor_id":      (row.get("recipient_ids") or [""])[0],
+            "notification_type": row.get("message_type") or "general",
+            "method":            row.get("channel") or "email",
+            "status":            row.get("status", "sent"),
+            "message_preview":   row.get("error_detail") or row.get("message_type"),
+            "sent_by":           row.get("triggered_by") or "",
+            "created_at":        row["created_at"],
         })
     return mapped
