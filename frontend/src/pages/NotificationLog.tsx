@@ -45,12 +45,34 @@ interface DetailModalProps {
   onClose: () => void
 }
 
+const HEADER_COLOR: Record<string, string> = {
+  accepted:     'bg-green-700',
+  declined:     'bg-red-800',
+  returned:     'bg-amber-800',
+  canceled:     'bg-gray-700',
+  completed:    'bg-violet-700',
+  general:      'bg-brand-600',
+  manual_alert: 'bg-brand-600',
+}
+
+const HEADER_SUB_COLOR: Record<string, string> = {
+  accepted:     'text-green-200',
+  declined:     'text-red-200',
+  returned:     'text-amber-200',
+  canceled:     'text-gray-300',
+  completed:    'text-violet-200',
+  general:      'text-brand-200',
+  manual_alert: 'text-brand-200',
+}
+
 function DetailModal({ log, requestorName, tripLabel, clientName, onClose }: DetailModalProps) {
-  const typeConf   = TYPE_CONFIG[log.notification_type] ?? TYPE_CONFIG['general']
-  const statusConf = STATUS_CONFIG[log.status]
-  const methodConf = METHOD_CONFIG[log.method]
-  const StatusIcon = statusConf?.icon
-  const MethodIcon = methodConf?.icon
+  const typeConf    = TYPE_CONFIG[log.notification_type] ?? TYPE_CONFIG['general']
+  const statusConf  = STATUS_CONFIG[log.status]
+  const methodConf  = METHOD_CONFIG[log.method]
+  const StatusIcon  = statusConf?.icon
+  const MethodIcon  = methodConf?.icon
+  const headerBg    = HEADER_COLOR[log.notification_type] ?? HEADER_COLOR['general']
+  const headerSub   = HEADER_SUB_COLOR[log.notification_type] ?? HEADER_SUB_COLOR['general']
 
   const previewLabel = (() => {
     const raw = log.message_preview as string | null
@@ -63,17 +85,17 @@ function DetailModal({ log, requestorName, tripLabel, clientName, onClose }: Det
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-lg p-0 overflow-hidden" aria-describedby={undefined}>
 
-        {/* Header with dark bg like email letterhead */}
-        <div className="bg-brand-600 px-6 py-5">
+        {/* Header — color based on notification type */}
+        <div className={`${headerBg} px-6 py-5`}>
           <DialogTitle className="sr-only">Notification Details</DialogTitle>
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[10px] font-bold text-brand-200 uppercase tracking-[2px] mb-1">GoTime Transportation</p>
+              <p className={`text-[10px] font-bold uppercase tracking-[2px] mb-1 ${headerSub}`}>GoTime Transportation</p>
               <h2 className="text-lg font-bold text-white leading-tight">Notification Details</h2>
-              <p className="text-xs text-brand-200 mt-0.5">Dispatch Delivery Record</p>
+              <p className={`text-xs mt-0.5 ${headerSub}`}>Dispatch Delivery Record</p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] text-brand-200 uppercase tracking-widest">Sent</p>
+              <p className={`text-[10px] uppercase tracking-widest ${headerSub}`}>Sent</p>
               <p className="text-xs font-semibold text-white mt-0.5">{formatDateTime(log.created_at)}</p>
             </div>
           </div>
