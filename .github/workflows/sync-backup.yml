@@ -14,7 +14,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Push to backup
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add GitHub to known hosts
+        run: ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+      - name: Push to backup via SSH
         run: |
-          git remote add backup https://x-access-token:${{ secrets.BACKUP_TOKEN }}@github.com/gotime-transportation/gotime.git
-          git push backup refs/heads/main:refs/heads/main --force
+          git remote add backup git@github.com:gotime-transportation/gotime.git
+          git push backup main --force
