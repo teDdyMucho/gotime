@@ -15,16 +15,6 @@ function maskClientName(name: string) {
   return `${parts[0][0]}. ${parts.slice(1).join(' ')}`
 }
 
-const TYPE_LABEL: Record<string, string> = {
-  accepted:     'Accepted',
-  declined:     'Declined',
-  returned:     'Returned',
-  canceled:     'Canceled',
-  completed:    'Completed',
-  general:      'General Alert',
-  manual_alert: 'General Alert',
-}
-
 const TYPE_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
   accepted:     { label: 'Accepted',     color: 'text-green-700',  bg: 'bg-green-50',  border: 'border-green-200' },
   declined:     { label: 'Declined',     color: 'text-red-700',    bg: 'bg-red-50',    border: 'border-red-200' },
@@ -149,7 +139,8 @@ export function NotificationLog() {
   const clientMap    = Object.fromEntries(clients.map((c) => [c.id, c.full_name]))
 
   const filtered = logs.filter((n) => {
-    const type = n.notification_type === 'manual_alert' ? 'general' : n.notification_type
+    const rawType = n.notification_type as string
+    const type = rawType === 'manual_alert' ? 'general' : rawType
     if (typeFilter !== 'all' && type !== typeFilter) return false
     if (methodFilter !== 'all' && n.method !== methodFilter) return false
     return true
