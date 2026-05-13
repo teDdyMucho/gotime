@@ -1,0 +1,20 @@
+name: Sync to Backup
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to backup
+        run: |
+          git remote add backup https://x-access-token:${{ secrets.BACKUP_TOKEN }}@github.com/gotime-transportation/gotime.git
+          git push backup main --force
