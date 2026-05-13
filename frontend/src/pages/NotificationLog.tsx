@@ -1,10 +1,11 @@
-  import { useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { notificationsApi, requestorsApi, tripsApi, clientsApi } from '@/lib/api'
 import type { NotificationLog, Requestor, TripRequest, Client } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { RefreshCw, Mail, MessageSquare, AtSign, Bell, CheckCircle2, XCircle, Clock } from 'lucide-react'
 import { formatDateTime } from '@/lib/utils'
 
@@ -14,31 +15,114 @@ function maskClientName(name: string) {
   return `${parts[0][0]}. ${parts.slice(1).join(' ')}`
 }
 
+const TYPE_LABEL: Record<string, string> = {
+  accepted:     'Accepted',
+  declined:     'Declined',
+  returned:     'Returned',
+  canceled:     'Canceled',
+  completed:    'Completed',
+  general:      'General Alert',
+  manual_alert: 'General Alert',
+}
+
 const TYPE_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
-  accepted:  { label: 'Accepted',  color: 'text-green-700',  bg: 'bg-green-50',  border: 'border-green-200' },
-  declined:  { label: 'Declined',  color: 'text-red-700',    bg: 'bg-red-50',    border: 'border-red-200' },
-  returned:  { label: 'Returned',  color: 'text-blue-700',   bg: 'bg-blue-50',   border: 'border-blue-200' },
-  canceled:  { label: 'Canceled',  color: 'text-gray-600',   bg: 'bg-gray-100',  border: 'border-gray-200' },
-  completed: { label: 'Completed', color: 'text-violet-700', bg: 'bg-violet-50', border: 'border-violet-200' },
-  general:   { label: 'General',   color: 'text-gray-600',   bg: 'bg-gray-50',   border: 'border-gray-200' },
+  accepted:     { label: 'Accepted',     color: 'text-green-700',  bg: 'bg-green-50',  border: 'border-green-200' },
+  declined:     { label: 'Declined',     color: 'text-red-700',    bg: 'bg-red-50',    border: 'border-red-200' },
+  returned:     { label: 'Returned',     color: 'text-blue-700',   bg: 'bg-blue-50',   border: 'border-blue-200' },
+  canceled:     { label: 'Canceled',     color: 'text-gray-600',   bg: 'bg-gray-100',  border: 'border-gray-200' },
+  completed:    { label: 'Completed',    color: 'text-violet-700', bg: 'bg-violet-50', border: 'border-violet-200' },
+  general:      { label: 'General Alert',color: 'text-gray-600',   bg: 'bg-gray-50',   border: 'border-gray-200' },
+  manual_alert: { label: 'General Alert',color: 'text-gray-600',   bg: 'bg-gray-50',   border: 'border-gray-200' },
 }
 
 const STATUS_CONFIG: Record<string, { icon: React.ElementType; color: string; bg: string; border: string; label: string }> = {
-  sent:    { icon: CheckCircle2, color: 'text-green-700',  bg: 'bg-green-50',  border: 'border-green-200', label: 'Sent' },
-  failed:  { icon: XCircle,      color: 'text-red-700',    bg: 'bg-red-50',    border: 'border-red-200',   label: 'Failed' },
-  pending: { icon: Clock,        color: 'text-amber-700',  bg: 'bg-amber-50',  border: 'border-amber-200', label: 'Pending' },
+  sent:    { icon: CheckCircle2, color: 'text-green-700', bg: 'bg-green-50', border: 'border-green-200', label: 'Sent' },
+  failed:  { icon: XCircle,     color: 'text-red-700',   bg: 'bg-red-50',   border: 'border-red-200',   label: 'Failed' },
+  pending: { icon: Clock,       color: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200', label: 'Pending' },
 }
 
 const METHOD_CONFIG: Record<string, { icon: React.ElementType; label: string; color: string }> = {
-  email: { icon: Mail,          label: 'Email',      color: 'text-blue-500' },
-  sms:   { icon: MessageSquare, label: 'SMS',        color: 'text-violet-500' },
-  both:  { icon: AtSign,        label: 'Email + SMS',color: 'text-teal-500' },
+  email: { icon: Mail,          label: 'Email',       color: 'text-blue-500' },
+  sms:   { icon: MessageSquare, label: 'SMS',         color: 'text-violet-500' },
+  both:  { icon: AtSign,        label: 'Email + SMS', color: 'text-teal-500' },
+}
+
+interface DetailModalProps {
+  log: NotificationLog
+  requestorName?: string
+  tripLabel?: string
+  clientName?: string
+  onClose: () => void
+}
+
+function DetailModal({ log, requestorName, tripLabel, clientName, onClose }: DetailModalProps) {
+  const typeConf   = TYPE_CONFIG[log.notification_type] ?? TYPE_CONFIG['general']
+  const statusConf = STATUS_CONFIG[log.status]
+  const methodConf = METHOD_CONFIG[log.method]
+  const StatusIcon = statusConf?.icon
+  const MethodIcon = methodConf?.icon
+
+  const rows: { label: string; value: React.ReactNode }[] = [
+    { label: 'Sent At',    value: formatDateTime(log.created_at) },
+    { label: 'Recipient',  value: requestorName ?? '—' },
+    { label: 'Client',     value: clientName ?? '—' },
+    { label: 'Trip',       value: tripLabel ?? '—' },
+    {
+      label: 'Type',
+      value: (
+        <span className={`inline-flex items-center px-2 py-0.5 rounded-md border text-[11px] font-semibold ${typeConf.bg} ${typeConf.color} ${typeConf.border}`}>
+          {typeConf.label}
+        </span>
+      ),
+    },
+    {
+      label: 'Method',
+      value: methodConf && MethodIcon ? (
+        <div className="flex items-center gap-1.5">
+          <MethodIcon className={`h-3.5 w-3.5 ${methodConf.color}`} />
+          <span className="text-xs text-gray-700">{methodConf.label}</span>
+        </div>
+      ) : '—',
+    },
+    {
+      label: 'Status',
+      value: statusConf && StatusIcon ? (
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[11px] font-semibold ${statusConf.bg} ${statusConf.color} ${statusConf.border}`}>
+          <StatusIcon className="h-3 w-3" />
+          {statusConf.label}
+        </span>
+      ) : '—',
+    },
+    { label: 'Preview', value: log.message_preview ?? '—' },
+  ]
+
+  return (
+    <Dialog open onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-md p-0" aria-describedby={undefined}>
+        <DialogHeader className="px-6 pt-5 pb-4 border-b border-gray-100">
+          <DialogTitle className="text-sm font-semibold text-gray-900">Notification Details</DialogTitle>
+        </DialogHeader>
+        <div className="px-6 py-5 space-y-0 divide-y divide-gray-50">
+          {rows.map(({ label, value }) => (
+            <div key={label} className="flex items-start justify-between gap-4 py-3">
+              <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest shrink-0 w-24">{label}</span>
+              <span className="text-xs text-gray-700 text-right">{value}</span>
+            </div>
+          ))}
+        </div>
+        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/60">
+          <Button size="sm" className="w-full h-9 text-xs" onClick={onClose}>Close</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
 }
 
 export function NotificationLog() {
   const navigate = useNavigate()
   const [typeFilter, setTypeFilter]     = useState<string>('all')
   const [methodFilter, setMethodFilter] = useState<string>('all')
+  const [selected, setSelected]         = useState<NotificationLog | null>(null)
 
   const { data: logs = [], isLoading, refetch, isFetching } = useQuery<NotificationLog[]>({
     queryKey: ['notification-log'],
@@ -65,7 +149,8 @@ export function NotificationLog() {
   const clientMap    = Object.fromEntries(clients.map((c) => [c.id, c.full_name]))
 
   const filtered = logs.filter((n) => {
-    if (typeFilter !== 'all' && n.notification_type !== typeFilter) return false
+    const type = n.notification_type === 'manual_alert' ? 'general' : n.notification_type
+    if (typeFilter !== 'all' && type !== typeFilter) return false
     if (methodFilter !== 'all' && n.method !== methodFilter) return false
     return true
   })
@@ -77,7 +162,7 @@ export function NotificationLog() {
   return (
     <div className="flex flex-col gap-0 -m-6 min-h-full bg-gray-50">
 
-      {/* ── Header bar ── */}
+      {/* ── Header ── */}
       <div className="bg-white border-b border-gray-200 px-6 py-4 shrink-0">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
@@ -96,9 +181,7 @@ export function NotificationLog() {
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="h-8 text-xs w-40">
-                <SelectValue placeholder="All Types" />
-              </SelectTrigger>
+              <SelectTrigger className="h-8 text-xs w-40"><SelectValue placeholder="All Types" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all" className="text-xs">All Types</SelectItem>
                 <SelectItem value="accepted" className="text-xs">Accepted</SelectItem>
@@ -106,13 +189,11 @@ export function NotificationLog() {
                 <SelectItem value="returned" className="text-xs">Returned</SelectItem>
                 <SelectItem value="canceled" className="text-xs">Canceled</SelectItem>
                 <SelectItem value="completed" className="text-xs">Completed</SelectItem>
-                <SelectItem value="general" className="text-xs">General</SelectItem>
+                <SelectItem value="general" className="text-xs">General Alert</SelectItem>
               </SelectContent>
             </Select>
             <Select value={methodFilter} onValueChange={setMethodFilter}>
-              <SelectTrigger className="h-8 text-xs w-36">
-                <SelectValue placeholder="All Methods" />
-              </SelectTrigger>
+              <SelectTrigger className="h-8 text-xs w-36"><SelectValue placeholder="All Methods" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all" className="text-xs">All Methods</SelectItem>
                 <SelectItem value="email" className="text-xs">Email</SelectItem>
@@ -120,11 +201,7 @@ export function NotificationLog() {
                 <SelectItem value="both" className="text-xs">Both</SelectItem>
               </SelectContent>
             </Select>
-            <Button
-              variant="outline" size="sm"
-              className="h-8 w-8 p-0 shrink-0"
-              onClick={() => refetch()}
-            >
+            <Button variant="outline" size="sm" className="h-8 w-8 p-0 shrink-0" onClick={() => refetch()}>
               <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? 'animate-spin' : ''}`} />
             </Button>
           </div>
@@ -159,20 +236,21 @@ export function NotificationLog() {
             ) : (
               <div className="divide-y divide-gray-50">
                 {filtered.map((n) => {
-                  const requestor     = requestorMap[n.requestor_id]
-                  const trip          = tripMap[n.trip_id]
-                  const rawClientName = trip ? clientMap[trip.client_id] : undefined
-                  const maskedClient  = rawClientName ? maskClientName(rawClientName) : null
-                  const typeConf      = TYPE_CONFIG[n.notification_type]
-                  const statusConf    = STATUS_CONFIG[n.status]
-                  const methodConf    = METHOD_CONFIG[n.method]
-                  const StatusIcon    = statusConf?.icon
-                  const MethodIcon    = methodConf?.icon
+                  const requestor    = requestorMap[n.requestor_id]
+                  const trip         = tripMap[n.trip_id]
+                  const rawClient    = trip ? clientMap[trip.client_id] : undefined
+                  const maskedClient = rawClient ? maskClientName(rawClient) : null
+                  const typeConf     = TYPE_CONFIG[n.notification_type] ?? TYPE_CONFIG['general']
+                  const statusConf   = STATUS_CONFIG[n.status]
+                  const methodConf   = METHOD_CONFIG[n.method]
+                  const StatusIcon   = statusConf?.icon
+                  const MethodIcon   = methodConf?.icon
 
                   return (
                     <div
                       key={n.id}
-                      className="grid grid-cols-[1.3fr_0.9fr_1.5fr_1.3fr_0.9fr_0.8fr_0.8fr_2fr] gap-0 items-center px-5 py-3.5 hover:bg-gray-50/70 transition-colors"
+                      onClick={() => setSelected(n)}
+                      className="grid grid-cols-[1.3fr_0.9fr_1.5fr_1.3fr_0.9fr_0.8fr_0.8fr_2fr] gap-0 items-center px-5 py-3.5 hover:bg-brand-50/40 transition-colors cursor-pointer"
                     >
                       {/* Sent At */}
                       <div className="pr-3 min-w-0">
@@ -183,17 +261,16 @@ export function NotificationLog() {
                       <div className="pr-3 min-w-0">
                         {maskedClient
                           ? <p className="text-xs font-semibold text-gray-700 truncate">{maskedClient}</p>
-                          : <span className="text-xs text-gray-300">—</span>
-                        }
+                          : <span className="text-xs text-gray-300">—</span>}
                       </div>
 
                       {/* Trip */}
                       <div className="pr-3 min-w-0">
                         <button
                           className="text-brand-600 hover:text-brand-700 hover:underline font-medium text-xs truncate block max-w-full text-left"
-                          onClick={() => navigate(`/trips/${n.trip_id}`)}
+                          onClick={(e) => { e.stopPropagation(); navigate(`/trips/${n.trip_id}`) }}
                         >
-                          {trip ? `${trip.appointment_type ?? 'Trip'} · ${trip.trip_date}` : n.trip_id}
+                          {trip ? `${trip.appointment_type ?? 'Trip'} · ${trip.trip_date}` : '—'}
                         </button>
                       </div>
 
@@ -206,18 +283,14 @@ export function NotificationLog() {
                               <p className="text-[11px] text-gray-400 truncate">{requestor.title_department}</p>
                             )}
                           </div>
-                        ) : (
-                          <p className="font-mono text-[11px] text-gray-400 truncate">{n.requestor_id}</p>
-                        )}
+                        ) : <span className="text-xs text-gray-300">—</span>}
                       </div>
 
                       {/* Type */}
                       <div>
-                        {typeConf ? (
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-md border text-[11px] font-semibold ${typeConf.bg} ${typeConf.color} ${typeConf.border}`}>
-                            {typeConf.label}
-                          </span>
-                        ) : <span className="text-xs text-gray-300">—</span>}
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md border text-[11px] font-semibold ${typeConf.bg} ${typeConf.color} ${typeConf.border}`}>
+                          {typeConf.label}
+                        </span>
                       </div>
 
                       {/* Method */}
@@ -259,6 +332,21 @@ export function NotificationLog() {
           </div>
         )}
       </div>
+
+      {/* ── Detail Modal ── */}
+      {selected && (
+        <DetailModal
+          log={selected}
+          requestorName={requestorMap[selected.requestor_id]?.name}
+          tripLabel={tripMap[selected.trip_id] ? `${tripMap[selected.trip_id].appointment_type ?? 'Trip'} · ${tripMap[selected.trip_id].trip_date}` : undefined}
+          clientName={(() => {
+            const trip = tripMap[selected.trip_id]
+            const raw  = trip ? clientMap[trip.client_id] : undefined
+            return raw ? maskClientName(raw) : undefined
+          })()}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </div>
   )
 }
