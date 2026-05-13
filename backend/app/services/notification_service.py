@@ -10,6 +10,7 @@ _DECISION_TYPE_MAP = {
 }
 
 
+
 def _log(
     trip_id: str,
     message_type: str,
