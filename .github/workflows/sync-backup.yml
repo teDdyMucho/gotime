@@ -15,6 +15,10 @@ jobs:
           fetch-depth: 0
 
       - name: Push to backup
+        env:
+          BACKUP_TOKEN: ${{ secrets.BACKUP_TOKEN }}
         run: |
-          git remote add backup https://x-access-token:${{ secrets.BACKUP_TOKEN }}@github.com/gotime-transportation/gotime.git
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+          git remote add backup https://gotime-transportation:${BACKUP_TOKEN}@github.com/gotime-transportation/gotime.git
           git push backup main --force
