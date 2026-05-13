@@ -83,26 +83,49 @@ function DetailModal({ log, requestorName, tripLabel, clientName, onClose }: Det
         </span>
       ) : '—',
     },
-    { label: 'Preview', value: log.message_preview ?? '—' },
+    { label: 'Preview', value: (() => {
+      const raw = log.message_preview as string | null
+      if (!raw) return '—'
+      const map: Record<string, string> = { manual_alert: 'General Alert', trip_decision: 'Trip Update', canceled: 'Trip Canceled' }
+      return map[raw] ?? raw
+    })() },
   ]
 
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-md p-0" aria-describedby={undefined}>
+      <DialogContent className="max-w-md p-0 overflow-hidden" aria-describedby={undefined}>
+
+        {/* Green top stripe */}
+        <div className="h-1 w-full bg-brand-600" />
+
+        {/* Header */}
         <DialogHeader className="px-6 pt-5 pb-4 border-b border-gray-100">
-          <DialogTitle className="text-sm font-semibold text-gray-900">Notification Details</DialogTitle>
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-brand-50 border border-brand-100 flex items-center justify-center shrink-0">
+              <Bell className="h-4 w-4 text-brand-600" />
+            </div>
+            <div>
+              <DialogTitle className="text-sm font-bold text-gray-900 leading-tight">Notification Details</DialogTitle>
+              <p className="text-[11px] text-gray-400 mt-0.5 uppercase tracking-widest font-medium">Delivery Record</p>
+            </div>
+          </div>
         </DialogHeader>
-        <div className="px-6 py-5 space-y-0 divide-y divide-gray-50">
+
+        {/* Rows */}
+        <div className="px-6 py-2 divide-y divide-gray-50">
           {rows.map(({ label, value }) => (
-            <div key={label} className="flex items-start justify-between gap-4 py-3">
-              <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest shrink-0 w-24">{label}</span>
-              <span className="text-xs text-gray-700 text-right">{value}</span>
+            <div key={label} className="flex items-center justify-between gap-4 py-3.5">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest shrink-0 w-20">{label}</span>
+              <span className="text-xs text-gray-700 text-right font-medium">{value}</span>
             </div>
           ))}
         </div>
+
+        {/* Footer */}
         <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/60">
-          <Button size="sm" className="w-full h-9 text-xs" onClick={onClose}>Close</Button>
+          <Button size="sm" className="w-full h-9 text-xs bg-brand-600 hover:bg-brand-700" onClick={onClose}>Close</Button>
         </div>
+
       </DialogContent>
     </Dialog>
   )
