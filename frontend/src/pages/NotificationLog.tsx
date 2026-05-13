@@ -6,7 +6,7 @@ import type { NotificationLog, Requestor, TripRequest, Client } from '@/lib/type
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { RefreshCw, Mail, MessageSquare, AtSign, Bell, CheckCircle2, XCircle, Clock } from 'lucide-react'
+import { RefreshCw, Mail, MessageSquare, AtSign, Bell, CheckCircle2, XCircle, Clock, Search, X } from 'lucide-react'
 import { formatDateTime } from '@/lib/utils'
 
 function maskClientName(name: string) {
@@ -135,6 +135,7 @@ export function NotificationLog() {
   const navigate = useNavigate()
   const [typeFilter, setTypeFilter]     = useState<string>('all')
   const [methodFilter, setMethodFilter] = useState<string>('all')
+  const [search, setSearch]             = useState<string>('')
   const [selected, setSelected]         = useState<NotificationLog | null>(null)
 
   const { data: logs = [], isLoading, refetch, isFetching } = useQuery<NotificationLog[]>({
@@ -166,6 +167,18 @@ export function NotificationLog() {
     const type = rawType === 'manual_alert' ? 'general' : rawType
     if (typeFilter !== 'all' && type !== typeFilter) return false
     if (methodFilter !== 'all' && n.method !== methodFilter) return false
+    if (search.trim()) {
+      const q = search.toLowerCase()
+      const requestor   = requestorMap[n.requestor_id]
+      const trip        = tripMap[n.trip_id]
+      const clientName  = trip ? clientMap[trip.client_id] ?? '' : ''
+      const matchesRecipient = requestor?.name?.toLowerCase().includes(q) ?? false
+      const matchesClient    = clientName.toLowerCase().includes(q)
+      const matchesTrip      = trip ? `${trip.appointment_type ?? ''} ${trip.trip_date}`.toLowerCase().includes(q) : false
+      const matchesMethod    = n.method.toLowerCase().includes(q)
+      const matchesStatus    = n.status.toLowerCase().includes(q)
+      if (!matchesRecipient && !matchesClient && !matchesTrip && !matchesMethod && !matchesStatus) return false
+    }
     return true
   })
 
@@ -194,6 +207,25 @@ export function NotificationLog() {
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400 pointer-events-none" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search recipient, client, trip…"
+                className="h-8 pl-8 pr-7 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 w-56 placeholder:text-gray-400"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="h-8 text-xs w-40"><SelectValue placeholder="All Types" /></SelectTrigger>
               <SelectContent>
