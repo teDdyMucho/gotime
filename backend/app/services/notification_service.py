@@ -143,19 +143,25 @@ async def trigger_trip_decision(
     channel = requestor_data.get("preferred_notification_method", preferred_method)
     message_type = _DECISION_TYPE_MAP.get(decision, "general")
 
-    payload = {
-        "trip_id":                      trip_id,
-        "decision":                     decision,
-        "requestor_id":                 requestor_id,
-        "requestor_name":               requestor_data.get("name"),
-        "requestor_phone":              requestor_data.get("phone"),
-        "requestor_email":              requestor_data.get("email"),
-        "trip_date":                    trip_data.get("trip_date"),
+    base = {
+        "trip_id":                       trip_id,
+        "decision":                      decision,
+        "requestor_id":                  requestor_id,
+        "requestor_name":                requestor_data.get("name"),
+        "requestor_phone":               requestor_data.get("phone"),
+        "requestor_email":               requestor_data.get("email"),
+        "trip_date":                     trip_data.get("trip_date"),
         "preferred_notification_method": channel,
-        "decline_reason":               decline_reason,
-        "clarification_reason":         clarification_reason,
-        "review_notes":                 review_notes,
     }
+
+    if decision == "accept":
+        payload = {**base, "review_notes": review_notes}
+    elif decision == "decline":
+        payload = {**base, "decline_reason": decline_reason, "review_notes": review_notes}
+    elif decision == "return":
+        payload = {**base, "clarification_reason": clarification_reason, "review_notes": review_notes}
+    else:
+        payload = base
 
     url = f"{settings.n8n_webhook_base_url}{settings.n8n_trip_decision_webhook}"
     success, error = await _post_webhook(url, payload)
